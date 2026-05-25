@@ -202,7 +202,7 @@ func (h *jobHandler) syncNodeJob(job *batchv1.Job) (*batchv1.Job, error) {
 		if toUpdate.Annotations == nil {
 			toUpdate.Annotations = make(map[string]string)
 		}
-		toUpdate.Annotations[preDrainAnnotation] = secret.Annotations[rke2PreDrainAnnotation]
+		toUpdate.Annotations[preDrainAnnotation] = secret.Annotations[planPreDrainAnnotation]
 		if _, err := h.secretClient.Update(toUpdate); err != nil {
 			return nil, err
 		}
@@ -213,7 +213,7 @@ func (h *jobHandler) syncNodeJob(job *batchv1.Job) (*batchv1.Job, error) {
 		if toUpdate.Annotations == nil {
 			toUpdate.Annotations = make(map[string]string)
 		}
-		toUpdate.Annotations[postDrainAnnotation] = secret.Annotations[rke2PostDrainAnnotation]
+		toUpdate.Annotations[postDrainAnnotation] = secret.Annotations[planPostDrainAnnotation]
 		if _, err := h.secretClient.Update(toUpdate); err != nil {
 			return nil, err
 		}

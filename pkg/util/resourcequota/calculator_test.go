@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	v3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -19,23 +18,23 @@ import (
 )
 
 var (
-	bothExist = &v3.NamespaceResourceQuota{
-		Limit: v3.ResourceQuotaLimit{
+	bothExist = &NamespaceResourceQuota{
+		Limit: ResourceQuotaLimit{
 			LimitsCPU:    "2000m",
 			LimitsMemory: "3000Mi",
 		},
 	}
-	cpuExist = &v3.NamespaceResourceQuota{
-		Limit: v3.ResourceQuotaLimit{
+	cpuExist = &NamespaceResourceQuota{
+		Limit: ResourceQuotaLimit{
 			LimitsCPU: "2000m",
 		},
 	}
-	memoryExist = &v3.NamespaceResourceQuota{
-		Limit: v3.ResourceQuotaLimit{
+	memoryExist = &NamespaceResourceQuota{
+		Limit: ResourceQuotaLimit{
 			LimitsMemory: "3000Mi",
 		},
 	}
-	noneExist *v3.NamespaceResourceQuota
+	noneExist *NamespaceResourceQuota
 )
 
 const (

@@ -7,9 +7,6 @@ import (
 	"testing"
 
 	lhv1beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
-	fleet "github.com/rancher/fleet/pkg/apis/fleet.cattle.io/v1alpha1"
-	mgmtv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
-	provisioningv1 "github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1"
 	upgradeapiv1 "github.com/rancher/system-upgrade-controller/pkg/apis/upgrade.cattle.io/v1"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
@@ -93,18 +90,6 @@ func newLonghornSetting(name, value string) *lhv1beta2.Setting {
 	}
 }
 
-func newCluster(namespace, name string) *provisioningv1.Cluster {
-	return &provisioningv1.Cluster{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-		},
-		Spec: provisioningv1.ClusterSpec{
-			RKEConfig: &provisioningv1.RKEConfig{},
-		},
-	}
-}
-
 func newKubeVirt(namespace, name string) *kubevirtv1.KubeVirt {
 	return &kubevirtv1.KubeVirt{
 		ObjectMeta: metav1.ObjectMeta{
@@ -119,43 +104,13 @@ func newKubeVirt(namespace, name string) *kubevirtv1.KubeVirt {
 	}
 }
 
-func newManagedChart(namespace, name string) *mgmtv3.ManagedChart {
-	return &mgmtv3.ManagedChart{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-		},
-		Spec: mgmtv3.ManagedChartSpec{
-			Diff: &fleet.DiffOptions{
-				ComparePatches: []fleet.ComparePatch{},
-			},
-		},
-	}
-}
-
-func newManagedChartWithComparePatches(namespace, name string, patches []fleet.ComparePatch) *mgmtv3.ManagedChart {
-	return &mgmtv3.ManagedChart{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-		},
-		Spec: mgmtv3.ManagedChartSpec{
-			Diff: &fleet.DiffOptions{
-				ComparePatches: patches,
-			},
-		},
-	}
-}
-
 func TestUpgradeHandler_OnChanged(t *testing.T) {
 	type input struct {
 		key          string
 		upgrade      *harvesterv1.Upgrade
 		version      *harvesterv1.Version
 		vmi          *harvesterv1.VirtualMachineImage
-		cluster      *provisioningv1.Cluster
-		kubevirt     *kubevirtv1.KubeVirt
-		managedChart *mgmtv3.ManagedChart
+		kubevirt *kubevirtv1.KubeVirt
 		lhsettings   []*lhv1beta2.Setting
 		nodes        []*v1.Node
 	}
@@ -164,9 +119,8 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 		upgrade      *harvesterv1.Upgrade
 		upgradeLog   *harvesterv1.UpgradeLog
 		vmi          *harvesterv1.VirtualMachineImage
-		kubevirt     *kubevirtv1.KubeVirt
-		managedChart *mgmtv3.ManagedChart
-		err          error
+		kubevirt *kubevirtv1.KubeVirt
+		err      error
 	}
 	var testCases = []struct {
 		name     string
@@ -180,7 +134,6 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 				upgrade: newTestUpgradeBuilder().WithLogEnabled(false).Build(),
 				version: newVersionBuilder(testVersion).Build(),
 				vmi:     newTestExistingVirtualMachineImage(upgradeNamespace, testUpgradeImage),
-				cluster: newCluster(util.FleetLocalNamespaceName, util.LocalClusterName),
 			},
 			expected: output{
 				upgrade: newTestUpgradeBuilder().InitStatus().
@@ -195,7 +148,6 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 				upgrade: newTestUpgradeBuilder().WithLogEnabled(true).Build(),
 				version: newVersionBuilder(testVersion).Build(),
 				vmi:     newTestExistingVirtualMachineImage(upgradeNamespace, testUpgradeImage),
-				cluster: newCluster(util.FleetLocalNamespaceName, util.LocalClusterName),
 			},
 			expected: output{
 				upgradeLog: prepareUpgradeLog(newTestUpgradeBuilder().Build()),
@@ -214,7 +166,6 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 					LogReadyCondition(v1.ConditionFalse, "Disabled", "Upgrade observability is administratively disabled").Build(),
 				version: newVersionBuilder(testVersion).Build(),
 				vmi:     newTestExistingVirtualMachineImage(upgradeNamespace, testUpgradeImage),
-				cluster: newCluster(util.FleetLocalNamespaceName, util.LocalClusterName),
 				nodes: []*v1.Node{
 					newNodeBuilder("node-1").Managed().ControlPlane().Build(),
 					newNodeBuilder("node-2").Managed().ControlPlane().Build(),
@@ -237,7 +188,6 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 					LogReadyCondition(v1.ConditionFalse, "Disabled", "Upgrade observability is administratively disabled").Build(),
 				version: newVersionBuilder(testVersion).Build(),
 				vmi:     newTestExistingVirtualMachineImage(upgradeNamespace, testUpgradeImage),
-				cluster: newCluster(util.FleetLocalNamespaceName, util.LocalClusterName),
 				nodes: []*v1.Node{
 					newNodeBuilder("node-1").Managed().ControlPlane().Build(),
 					newNodeBuilder("node-2").Managed().ControlPlane().Build(),
@@ -270,9 +220,7 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 					WithAnnotation(replicaReplenishmentAnnotation, strconv.Itoa(600)).Build(),
 				version:      newVersionBuilder(testVersion).Build(),
 				vmi:          newTestExistingVirtualMachineImage(upgradeNamespace, testUpgradeImage),
-				cluster:      newCluster(util.FleetLocalNamespaceName, util.LocalClusterName),
 				kubevirt:     newKubeVirt(util.HarvesterSystemNamespaceName, util.KubeVirtObjectName),
-				managedChart: newManagedChart(util.FleetLocalNamespaceName, util.HarvesterManagedChart),
 				lhsettings: []*lhv1beta2.Setting{
 					newLonghornSetting(replicaReplenishmentWaitIntervalSetting, strconv.Itoa(1200)),
 					newLonghornSetting(autoCleanupSystemGeneratedSnapshotSetting, strconv.FormatBool(false)),
@@ -315,32 +263,7 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 					WithAnnotation(imageCleanupPlanCompletedAnnotation, strconv.FormatBool(true)).Build(),
 				version:  newVersionBuilder(testVersion).Build(),
 				vmi:      newTestExistingVirtualMachineImage(upgradeNamespace, testUpgradeImage),
-				cluster:  newCluster(util.FleetLocalNamespaceName, util.LocalClusterName),
 				kubevirt: newKubeVirt(util.HarvesterSystemNamespaceName, util.KubeVirtObjectName),
-				managedChart: newManagedChartWithComparePatches(util.FleetLocalNamespaceName, util.HarvesterManagedChart, []fleet.ComparePatch{
-					{
-						APIVersion: "kubevirt.io/v1",
-						Kind:       "KubeVirt",
-						Name:       util.KubeVirtObjectName,
-						Namespace:  util.HarvesterSystemNamespaceName,
-						Operations: []fleet.Operation{
-							{
-								Op:    "replace",
-								Path:  "/spec/workloadUpdateStrategy/workloadUpdateMethods",
-								Value: "[]",
-							},
-							{
-								Op:    "replace",
-								Path:  "/spec/someOtherField",
-								Value: "test",
-							},
-						},
-						JsonPointers: []string{
-							"/spec/workloadUpdateStrategy/workloadUpdateMethods",
-							"/spec/someOtherField",
-						},
-					},
-				}),
 				nodes: []*v1.Node{
 					newNodeBuilder("node-1").Managed().ControlPlane().Build(),
 					newNodeBuilder("node-2").Managed().ControlPlane().Build(),
@@ -372,51 +295,15 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 						},
 					},
 				},
-				managedChart: &mgmtv3.ManagedChart{
-					ObjectMeta: metav1.ObjectMeta{
-						Namespace: util.FleetLocalNamespaceName,
-						Name:      util.HarvesterManagedChart,
-					},
-					Spec: mgmtv3.ManagedChartSpec{
-						Diff: &fleet.DiffOptions{
-							ComparePatches: []fleet.ComparePatch{
-								{
-									APIVersion: "kubevirt.io/v1",
-									Kind:       "KubeVirt",
-									Name:       util.KubeVirtObjectName,
-									Namespace:  util.HarvesterSystemNamespaceName,
-									Operations: []fleet.Operation{
-										{
-											Op:    "replace",
-											Path:  "/spec/workloadUpdateStrategy/workloadUpdateMethods",
-											Value: "[]",
-										},
-										{
-											Op:    "replace",
-											Path:  "/spec/someOtherField",
-											Value: "test",
-										},
-									},
-									JsonPointers: []string{
-										"/spec/someOtherField",
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 		},
 	}
 	for _, tc := range testCases {
-		var defaultObjs = []runtime.Object{tc.given.upgrade, tc.given.version, tc.given.vmi, tc.given.cluster}
+		var defaultObjs = []runtime.Object{tc.given.upgrade, tc.given.version, tc.given.vmi}
 		objs := make([]runtime.Object, 0, len(defaultObjs)+len(tc.given.lhsettings)+len(tc.given.nodes))
 		objs = append(objs, defaultObjs...)
 		if tc.given.kubevirt != nil {
 			objs = append(objs, tc.given.kubevirt)
-		}
-		if tc.given.managedChart != nil {
-			objs = append(objs, tc.given.managedChart)
 		}
 		for _, setting := range tc.given.lhsettings {
 			objs = append(objs, setting)
@@ -446,10 +333,6 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 			serviceClient:      fakeclients.ServiceClient(clientset.CoreV1().Services),
 			lhSettingCache:     fakeclients.LonghornSettingCache(clientset.LonghornV1beta2().Settings),
 			lhSettingClient:    fakeclients.LonghornSettingClient(clientset.LonghornV1beta2().Settings),
-			managedChartCache:  fakeclients.ManagedChartCache(clientset.ManagementV3().ManagedCharts),
-			managedChartClient: fakeclients.ManagedChartClient(clientset.ManagementV3().ManagedCharts),
-			clusterClient:      fakeclients.ClusterClient(clientset.ProvisioningV1().Clusters),
-			clusterCache:       fakeclients.ClusterCache(clientset.ProvisioningV1().Clusters),
 			deploymentClient:   fakeclients.DeploymentClient(clientset.AppsV1().Deployments),
 			deploymentCache:    fakeclients.DeploymentCache(clientset.AppsV1().Deployments),
 			scClient:           fakeclients.StorageClassClient(clientset.StorageV1().StorageClasses),
@@ -507,12 +390,6 @@ func TestUpgradeHandler_OnChanged(t *testing.T) {
 			assert.Equal(t, tc.expected.kubevirt.Spec, actual.kubevirt.Spec, "case %q: kubevirt spec mismatch", tc.name)
 		}
 
-		if tc.expected.managedChart != nil {
-			var err error
-			actual.managedChart, err = handler.managedChartClient.Get(tc.expected.managedChart.Namespace, tc.expected.managedChart.Name, metav1.GetOptions{})
-			assert.Nil(t, err)
-			assert.Equal(t, tc.expected.managedChart.Spec.Diff.ComparePatches, actual.managedChart.Spec.Diff.ComparePatches, "case %q: managedChart comparePatches mismatch", tc.name)
-		}
 	}
 }
 

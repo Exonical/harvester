@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"runtime"
 
-	v3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	ctlv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
@@ -21,6 +20,19 @@ import (
 	"github.com/harvester/harvester/pkg/util"
 	indexeresutil "github.com/harvester/harvester/pkg/util/indexeres"
 )
+
+// NamespaceResourceQuota represents the default quota limits for a namespace.
+// This is a local replacement for the Rancher management.cattle.io/v3 type.
+type NamespaceResourceQuota struct {
+	Limit ResourceQuotaLimit `json:"limit,omitempty"`
+}
+
+// ResourceQuotaLimit holds quota values for different resources.
+type ResourceQuotaLimit struct {
+	LimitsCPU      string `json:"limitsCpu,omitempty"`
+	LimitsMemory   string `json:"limitsMemory,omitempty"`
+	RequestsStorage string `json:"requestsStorage,omitempty"`
+}
 
 var resourceQuotaConversion = map[string]string{
 	"limitsCpu":       string(corev1.ResourceLimitsCPU),
@@ -109,7 +121,7 @@ func (c *Calculator) CheckIfVMCanStartByResourceQuota(vm *kubevirtv1.VirtualMach
 	return c.containsEnoughResourceQuotaToStartVM(vm, nrq, rqs[0])
 }
 
-func (c *Calculator) getNamespaceResourceQuota(vm *kubevirtv1.VirtualMachine) (*v3.NamespaceResourceQuota, error) {
+func (c *Calculator) getNamespaceResourceQuota(vm *kubevirtv1.VirtualMachine) (*NamespaceResourceQuota, error) {
 	// check namespace ResourceQuota
 	ns, err := c.nsCache.Get(vm.Namespace)
 	if err != nil {
@@ -117,7 +129,7 @@ func (c *Calculator) getNamespaceResourceQuota(vm *kubevirtv1.VirtualMachine) (*
 	}
 
 	// if not ResourceQuota annotation in namespace, return nil
-	var resourceQuota *v3.NamespaceResourceQuota
+	var resourceQuota *NamespaceResourceQuota
 	if rqStr, ok := ns.Annotations[util.CattleAnnotationResourceQuota]; !ok {
 		return nil, nil
 	} else if err := json.Unmarshal([]byte(rqStr), &resourceQuota); err != nil {
@@ -143,7 +155,7 @@ func (c *Calculator) getResourceQuota(vm *kubevirtv1.VirtualMachine) ([]*corev1.
 // containsEnoughResourceQuotaToStartVM checks if the VM can be started based on the namespace resource quota limits
 func (c *Calculator) containsEnoughResourceQuotaToStartVM(
 	vm *kubevirtv1.VirtualMachine,
-	namespaceResourceQuota *v3.NamespaceResourceQuota,
+	namespaceResourceQuota *NamespaceResourceQuota,
 	rq *corev1.ResourceQuota) error {
 	// get running migrations' used resource
 	vmimsCPU, vmimsMem, _, err := c.getRunningVMIMResources(rq)
@@ -234,7 +246,7 @@ func GetVMIMResourcesFromRQAnnotation(rq *corev1.ResourceQuota) (cpu, mem, stora
 }
 
 // Get Rancher NamespaceResourceQuota LimitsCPU and LimitsMemory
-func GetCPUMemoryLimitsFromRancherNamespaceResourceQuota(nrq *v3.NamespaceResourceQuota) (cpu, mem resource.Quantity, err error) {
+func GetCPUMemoryLimitsFromRancherNamespaceResourceQuota(nrq *NamespaceResourceQuota) (cpu, mem resource.Quantity, err error) {
 	if nrq.Limit.LimitsCPU == "" {
 		cpu = *resource.NewQuantity(0, resource.DecimalSI)
 	} else {
@@ -327,7 +339,7 @@ func (c *Calculator) CheckStorageResourceQuota(vm *kubevirtv1.VirtualMachine, ol
 	return nil
 }
 
-func convertNamespaceResourceLimitToResourceList(limit *v3.ResourceQuotaLimit) (corev1.ResourceList, error) {
+func convertNamespaceResourceLimitToResourceList(limit *ResourceQuotaLimit) (corev1.ResourceList, error) {
 	in, err := json.Marshal(limit)
 	if err != nil {
 		return nil, err

@@ -5,14 +5,12 @@ UPGRADE_TMP_DIR="/tmp/upgrade"
 
 source $SCRIPT_DIR/lib.sh
 
-# The default RKE2 failurePolicy is `reinstall`.
-# Recreating the NAD CRD can cause all VM networking to be lost.
-patch_rke2_multus_config() {
-  echo "Check and patch rke2-multus failurePolicy to abort, to avoid a reinstall of the chart and recreation of the NAD CRD."
+patch_multus_config() {
+  echo "Check and patch multus failurePolicy to abort, to avoid a reinstall of the chart and recreation of the NAD CRD."
 
-  local name="rke2-multus"
+  local name="multus"
   local namespace="kube-system"
-  local manifest="$UPGRADE_TMP_DIR/rke2-multus-helmchartconfig.yaml"
+  local manifest="$UPGRADE_TMP_DIR/multus-helmchartconfig.yaml"
 
   mkdir -p "$UPGRADE_TMP_DIR"
 
@@ -29,21 +27,17 @@ EOF
 
   # 2. Check if the resource exists
   local EXIT_CODE=0
-  # Using a global variable to ensure EXIT_CODE is captured correctly under 'set -e'
-  rke2_multus_chart_config_output=$(kubectl get helmchartconfig "$name" -n "$namespace" 2>&1) || EXIT_CODE=$?
+  multus_chart_config_output=$(kubectl get helmchartconfig "$name" -n "$namespace" 2>&1) || EXIT_CODE=$?
 
   if [[ $EXIT_CODE -ne 0 ]]; then
-    if [[ "$rke2_multus_chart_config_output" == *"NotFound"* || "$rke2_multus_chart_config_output" == *"not found"* ]]; then
+    if [[ "$multus_chart_config_output" == *"NotFound"* || "$multus_chart_config_output" == *"not found"* ]]; then
       echo "Resource '$name' not found. Creating..."
       kubectl apply -f "$manifest"
-      echo "Waiting 10s for RKE2 controller to sync new config..."
+      echo "Waiting 10s for controller to sync new config..."
       sleep 10
-      # When 'kubectl apply' is successful, we don't check helm-install job;
-      # RKE2 controller ensures the HelmChartConfig is used.
       return 0
     else
-      # Catch critical errors (RBAC, API timeouts, etc.)
-      echo "CRITICAL ERROR: kubectl check failed with: $rke2_multus_chart_config_output EXIT_CODE:$EXIT_CODE"
+      echo "CRITICAL ERROR: kubectl check failed with: $multus_chart_config_output EXIT_CODE:$EXIT_CODE"
       return 1
     fi
   fi
@@ -56,10 +50,8 @@ EOF
     echo "Current policy is '$current_policy'. Patching to 'abort'..."
     kubectl patch helmchartconfig "$name" -n "$namespace" \
       --type merge -p '{"spec":{"failurePolicy":"abort"}}'
-    echo "Waiting 10s for RKE2 controller to sync patch..."
+    echo "Waiting 10s for controller to sync patch..."
     sleep 10
-    # When 'kubectl patch' is successful, we don't check helm-install job;
-    # RKE2 controller ensures the HelmChartConfig is used.
   else
     echo "Verified: failurePolicy is already 'abort'. No action required."
   fi
@@ -72,10 +64,10 @@ pre_upgrade_manifest() {
     source "/usr/local/share/migrations/upgrade_manifests/${UPGRADE_PREVIOUS_VERSION}/pre-hook.sh"
   fi
 
-  # Safety Gate: Ensure rke2-multus helmchart failurePolicy is 'abort' before proceeding.
+  # Safety Gate: Ensure multus helmchart failurePolicy is 'abort' before proceeding.
   # Since 'set -e' is active, any failure here will safely halt the upgrade
   # to prevent potential NAD CRD deletion and VM networking loss.
-  patch_rke2_multus_config
+  patch_multus_config
 }
 
 # Preserve the current overcommit-config value before upgrade.
@@ -772,7 +764,7 @@ upgrade_rancher() {
   # Delete all rancher's clusterrepos so they will be updated by the new version rancher pods
   # Note: The leader pod would create these cluster repos
   kubectl delete clusterrepos.catalog.cattle.io rancher-charts
-  kubectl delete clusterrepos.catalog.cattle.io rancher-rke2-charts
+  kubectl delete clusterrepos.catalog.cattle.io rancher-partner-charts-extra || true
   kubectl delete clusterrepos.catalog.cattle.io rancher-partner-charts
   kubectl delete settings.management.cattle.io chart-default-branch
 
@@ -844,10 +836,9 @@ upgrade_rancher() {
   wait_cluster_local_and_fleet
 }
 
-update_local_rke_state_secret() {
-  # Starting from Rancher v2.7, the local-rke-state Secret needs to be in type of "rke.cattle.io/current-state"
-  # Need to convert it from the "Opaque" type; otherwise, the following RKE2 upgrades won't start
-  # Ref: https://github.com/rancher/rancher/pull/41088
+update_local_cluster_state_secret() {
+  # Ensure the local cluster state Secret has the correct type
+  # for Kubernetes upgrades to proceed properly.
   readonly secret_name="local-rke-state"
   readonly new_secret_type="rke.cattle.io/cluster-state"
 
@@ -1230,8 +1221,8 @@ pause_all_charts() {
 }
 
 skip_restart_rancher_system_agent() {
-  # to prevent rke2-server/agent from restarting during the rancher upgrade.
-  # by adding an env var to temporarily make rancher-system-agent on each node skip restarting rke2-server/agent.
+  # to prevent kubelet from restarting during the rancher upgrade.
+  # by adding an env var to temporarily make rancher-system-agent on each node skip restarting kubelet.
   # issue link: https://github.com/rancher/rancher/issues/41965
 
   plan_manifest="$(mktemp --suffix=.yaml)"
@@ -1260,11 +1251,11 @@ spec:
     args:
     - sh
     - -c
-    - set -x && mkdir -p /run/systemd/system/rancher-system-agent.service.d && echo -e '[Service]\nEnvironmentFile=-/run/systemd/system/rancher-system-agent.service.d/10-harvester-upgrade.env' | tee /run/systemd/system/rancher-system-agent.service.d/override.conf && echo 'INSTALL_RKE2_SKIP_ENABLE=true' | tee /run/systemd/system/rancher-system-agent.service.d/10-harvester-upgrade.env && systemctl daemon-reload && systemctl restart rancher-system-agent.service
+    - set -x && mkdir -p /run/systemd/system/rancher-system-agent.service.d && echo -e '[Service]\nEnvironmentFile=-/run/systemd/system/rancher-system-agent.service.d/10-harvester-upgrade.env' | tee /run/systemd/system/rancher-system-agent.service.d/override.conf && echo 'INSTALL_K8S_SKIP_ENABLE=true' | tee /run/systemd/system/rancher-system-agent.service.d/10-harvester-upgrade.env && systemctl daemon-reload && systemctl restart rancher-system-agent.service
   version: "$plan_version"
 EOF
 
-  echo "Creating plan $plan_name to make rancher-system-agent temporarily skip restarting RKE2 server..."
+  echo "Creating plan $plan_name to make rancher-system-agent temporarily skip restarting kubelet..."
   kubectl create -f "$plan_manifest"
 
   # Wait for all nodes complete
@@ -1531,7 +1522,7 @@ pause_all_charts
 skip_restart_rancher_system_agent
 upgrade_rancher
 patch_local_cluster_details
-update_local_rke_state_secret
+update_local_cluster_state_secret
 migrate_longhorn_v1beta1_crds
 upgrade_harvester_cluster_repo
 ensure_ingress_class_name

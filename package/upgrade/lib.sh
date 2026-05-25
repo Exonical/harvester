@@ -32,7 +32,7 @@ detect_repo()
   REPO_HARVESTER_CHART_VERSION=$(yq -e e '.harvesterChart' $release_file)
   REPO_OS_PRETTY_NAME="$(yq -e e '.os' $release_file)"
   REPO_OS_VERSION="${REPO_OS_PRETTY_NAME#Harvester }"
-  REPO_RKE2_VERSION=$(yq -e e '.kubernetes' $release_file)
+  REPO_KUBERNETES_VERSION=$(yq -e e '.kubernetes' $release_file)
   REPO_RANCHER_VERSION=$(yq -e e '.rancher' $release_file)
   REPO_MONITORING_CHART_VERSION=$(yq -e e '.monitoringChart' $release_file)
   REPO_LOGGING_CHART_VERSION=$(yq -e e '.loggingChart' $release_file)
@@ -62,8 +62,8 @@ detect_repo()
     exit 1
   fi
 
-  if [ -z "$REPO_RKE2_VERSION" ]; then
-    echo "[ERROR] Fail to get RKE2 version from upgrade repo."
+  if [ -z "$REPO_KUBERNETES_VERSION" ]; then
+    echo "[ERROR] Fail to get Kubernetes version from upgrade repo."
     exit 1
   fi
 
@@ -241,10 +241,10 @@ import_image_archives_from_repo() {
   local upgrade_tmp_dir=$2
   local tmp_image_archives=$(mktemp -d -p $upgrade_tmp_dir)
 
-  export CONTAINER_RUNTIME_ENDPOINT=unix:///$HOST_DIR/run/k3s/containerd/containerd.sock
-  export CONTAINERD_ADDRESS=$HOST_DIR/run/k3s/containerd/containerd.sock
+  export CONTAINER_RUNTIME_ENDPOINT=unix:///$HOST_DIR/run/containerd/containerd.sock
+  export CONTAINERD_ADDRESS=$HOST_DIR/run/containerd/containerd.sock
 
-  CTR="$HOST_DIR/$(readlink $HOST_DIR/var/lib/rancher/rke2/bin)/ctr"
+  CTR="$(command -v ctr 2>/dev/null || echo "$HOST_DIR/usr/local/bin/ctr")"
   if [ -z "$CTR" ];then
     echo "Fail to get host ctr binary."
     exit 1

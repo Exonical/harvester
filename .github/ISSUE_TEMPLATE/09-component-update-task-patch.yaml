@@ -21,7 +21,7 @@ body:
 
       - Main Components
         - [ ] Embedded Rancher @wheatdog
-        - [ ] RKE2 @wheatdog
+        - [ ] Kubernetes @wheatdog
         - [ ] Longhorn @Vicente-Cheng
         - [ ] KubeVirt @Vicente-Cheng (also virtctl)
         - [ ] Kube-OVN @starbops

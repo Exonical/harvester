@@ -124,8 +124,8 @@ func (v *nodeValidator) validateCPUManagerOperation(node *corev1.Node) error {
 	if err := checkCurrentNodeCPUManagerJobs(node, v.jobCache); err != nil {
 		return err
 	}
-	// check if this node is master and there are other master nodes undating cpu manager policy
-	// since the policy update on master node need to restart rke2-server, we only allow one master node update policy
+	// check if this node is master and there are other master nodes updating cpu manager policy
+	// since the policy update on master node needs to restart kubelet, we only allow one master node update policy
 	if err := checkMasterNodeJobs(node, v.nodeCache, v.jobCache); err != nil {
 		return err
 	}

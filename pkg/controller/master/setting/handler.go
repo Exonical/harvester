@@ -10,11 +10,9 @@ import (
 
 	ctlnodev1 "github.com/harvester/node-manager/pkg/generated/controllers/node.harvesterhci.io/v1beta1"
 	ctlhelmv1 "github.com/k3s-io/helm-controller/pkg/generated/controllers/helm.cattle.io/v1"
-	ctlmgmtv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
-	provisioningv1 "github.com/rancher/rancher/pkg/generated/controllers/provisioning.cattle.io/v1"
-	ctlrkev1 "github.com/rancher/rancher/pkg/generated/controllers/rke.cattle.io/v1"
 	"github.com/rancher/wrangler/v3/pkg/apply"
 	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps/v1"
+	ctlbatchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/rancher/wrangler/v3/pkg/slice"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -43,7 +41,7 @@ var (
 		settings.AdditionalGuestMemoryOverheadRatioName,
 	}
 	skipHashCheckSettings = []string{
-		settings.AutoRotateRKE2CertsSettingName,
+		settings.AutoRotateCertsSettingName,
 		settings.LogLevelSettingName,
 		settings.KubeconfigDefaultTokenTTLMinutesSettingName,
 		settings.AdditionalGuestMemoryOverheadRatioName,
@@ -55,8 +53,6 @@ type Handler struct {
 	namespace            string
 	httpClient           http.Client
 	apply                apply.Apply
-	clusterCache         provisioningv1.ClusterCache
-	clusters             provisioningv1.ClusterClient
 	settings             v1beta1.SettingClient
 	settingCache         v1beta1.SettingCache
 	settingController    v1beta1.SettingController
@@ -74,17 +70,13 @@ type Handler struct {
 	configmaps           ctlcorev1.ConfigMapClient
 	configmapCache       ctlcorev1.ConfigMapCache
 	endpointCache        ctlcorev1.EndpointsCache
-	managedCharts        ctlmgmtv3.ManagedChartClient
-	managedChartCache    ctlmgmtv3.ManagedChartCache
 	helmChartConfigs     ctlhelmv1.HelmChartConfigClient
 	helmChartConfigCache ctlhelmv1.HelmChartConfigCache
 	nodeClient           ctlcorev1.NodeController
 	nodeCache            ctlcorev1.NodeCache
 	nodeConfigs          ctlnodev1.NodeConfigClient
 	nodeConfigsCache     ctlnodev1.NodeConfigCache
-	rkeControlPlaneCache ctlrkev1.RKEControlPlaneCache
-	rancherSettings      ctlmgmtv3.SettingClient
-	rancherSettingsCache ctlmgmtv3.SettingCache
+	jobClient            ctlbatchv1.JobClient
 	kubeVirtConfig       kubevirtv1.KubeVirtClient
 	kubeVirtConfigCache  kubevirtv1.KubeVirtCache
 	namespaces           ctlcorev1.NamespaceClient

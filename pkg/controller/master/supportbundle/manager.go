@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	rancherv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	ctlappsv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps/v1"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/sirupsen/logrus"
@@ -206,17 +205,8 @@ func (m *Manager) getCollectNamespaces(sb *harvesterv1.SupportBundle) string {
 }
 
 func (m *Manager) getExcludeResources() string {
-	// total 6 elemental on following list, prealloc size 6
-	resources := make([]string, 0, 6)
-
-	// Sensitive data not go into support bundle
+	resources := make([]string, 0, 1)
 	resources = append(resources, harvesterv1.Resource(harvesterv1.SettingResourceName).String()) // TLS certificate and private key
-	resources = append(resources, rancherv3.Resource(rancherv3.AuthConfigResourceName).String())
-	resources = append(resources, rancherv3.Resource(rancherv3.AuthTokenResourceName).String())
-	resources = append(resources, rancherv3.Resource(rancherv3.SamlTokenResourceName).String())
-	resources = append(resources, rancherv3.Resource(rancherv3.TokenResourceName).String())
-	resources = append(resources, rancherv3.Resource(rancherv3.UserResourceName).String())
-
 	return strings.Join(resources, ",")
 }
 

@@ -7,10 +7,6 @@ import (
 	loggingv1 "github.com/kube-logging/logging-operator/pkg/sdk/logging/api/v1beta1"
 	lhv1beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	fleetv1alpha1 "github.com/rancher/fleet/pkg/apis/fleet.cattle.io/v1alpha1"
-	rancherv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
-	provisioningv1 "github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1"
-	rkev1 "github.com/rancher/rancher/pkg/apis/rke.cattle.io/v1"
 	upgradev1 "github.com/rancher/system-upgrade-controller/pkg/apis/upgrade.cattle.io/v1"
 	"k8s.io/client-go/rest"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
@@ -27,14 +23,6 @@ func createCRDs(ctx context.Context, restConfig *rest.Config) error {
 	return factory.
 		BatchCreateCRDsIfNotExisted(
 			crd.NonNamespacedFromGV(harvesterv1.SchemeGroupVersion, "Setting", harvesterv1.Setting{}),
-			crd.NonNamespacedFromGV(rancherv3.SchemeGroupVersion, "APIService", rancherv3.APIService{}),
-			crd.NonNamespacedFromGV(rancherv3.SchemeGroupVersion, "Setting", rancherv3.Setting{}),
-			crd.NonNamespacedFromGV(rancherv3.SchemeGroupVersion, "User", rancherv3.User{}),
-			crd.NonNamespacedFromGV(rancherv3.SchemeGroupVersion, "Group", rancherv3.Group{}),
-			crd.NonNamespacedFromGV(rancherv3.SchemeGroupVersion, "GroupMember", rancherv3.GroupMember{}),
-			crd.NonNamespacedFromGV(rancherv3.SchemeGroupVersion, "Token", rancherv3.Token{}),
-			crd.NonNamespacedFromGV(rancherv3.SchemeGroupVersion, "NodeDriver", rancherv3.NodeDriver{}),
-			crd.NonNamespacedFromGV(rancherv3.SchemeGroupVersion, "Feature", rancherv3.Feature{}),
 			crd.NonNamespacedFromGV(upgradev1.SchemeGroupVersion, "Plan", upgradev1.Plan{}),
 			crd.NonNamespacedFromGV(loggingv1.GroupVersion, "Logging", loggingv1.Logging{}),
 		).
@@ -67,8 +55,6 @@ func createCRDs(ctx context.Context, restConfig *rest.Config) error {
 			crd.FromGV(lhv1beta2.SchemeGroupVersion, "LHNode", lhv1beta2.Node{}),
 			crd.FromGV(lhv1beta2.SchemeGroupVersion, "Setting", lhv1beta2.Setting{}),
 			crd.FromGV(lhv1beta2.SchemeGroupVersion, "BackupTarget", lhv1beta2.BackupTarget{}),
-			crd.FromGV(provisioningv1.SchemeGroupVersion, "Cluster", provisioningv1.Cluster{}),
-			crd.FromGV(fleetv1alpha1.SchemeGroupVersion, "Cluster", fleetv1alpha1.Cluster{}),
 			crd.FromGV(clusterv1.GroupVersion, "Cluster", clusterv1.Cluster{}),
 			crd.FromGV(clusterv1.GroupVersion, "Machine", clusterv1.Machine{}),
 			crd.FromGV(harvesterv1.SchemeGroupVersion, "Addon", harvesterv1.Addon{}).WithStatus(),
@@ -79,7 +65,6 @@ func createCRDs(ctx context.Context, restConfig *rest.Config) error {
 			crd.FromGV(loggingv1.GroupVersion, "Flow", loggingv1.ClusterFlow{}),
 			crd.FromGV(loggingv1.GroupVersion, "Output", loggingv1.ClusterOutput{}),
 			crd.FromGV(nodev1.SchemeGroupVersion, "NodeConfig", nodev1.NodeConfig{}),
-			crd.FromGV(rkev1.SchemeGroupVersion, "RKEControlPlane", rkev1.RKEControlPlane{}),
 		).
 		BatchWait()
 }

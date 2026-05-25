@@ -52,12 +52,12 @@ spec:
     systemdLogPath: /var/log/journal
     disablePvc: true
     additionalLoggingSources:
-      rke2:
+      kubernetes:
         enabled: true
       kubeAudit:
         enabled: true
         auditFilename: "audit.log"
-        pathPrefix: "/var/lib/rancher/rke2/server/logs/"
+        pathPrefix: "/var/log/kubernetes/audit/"
         loggingRef: "harvester-kube-audit-log-ref"
         fluentbit:
           logTag: kube-audit

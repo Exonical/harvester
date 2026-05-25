@@ -197,21 +197,21 @@ type CSIDriverInfo struct {
 	BackupVolumeSnapshotClassName string `json:"backupVolumeSnapshotClassName"`
 }
 
-type AutoRotateRKE2Certs struct {
+type AutoRotateCerts struct {
 	Enable          bool `json:"enable"`
 	ExpiringInHours int  `json:"expiringInHours"`
 }
 
-func InitAutoRotateRKE2Certs() string {
-	autoRotateRKE2Certs := &AutoRotateRKE2Certs{
+func InitAutoRotateCerts() string {
+	autoRotateCerts := &AutoRotateCerts{
 		Enable:          false,
 		ExpiringInHours: 240, // 7 days
 	}
-	autoRotateRKE2CertsStr, err := json.Marshal(autoRotateRKE2Certs)
+	autoRotateCertsStr, err := json.Marshal(autoRotateCerts)
 	if err != nil {
-		logrus.WithField("name", AutoRotateRKE2CertsSettingName).WithError(err).Error("failed to init setting")
+		logrus.WithField("name", AutoRotateCertsSettingName).WithError(err).Error("failed to init setting")
 	}
-	return string(autoRotateRKE2CertsStr)
+	return string(autoRotateCertsStr)
 }
 
 func GetCSIDriverInfo(provisioner string) (*CSIDriverInfo, error) {

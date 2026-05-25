@@ -13,12 +13,9 @@ import (
 	"github.com/harvester/harvester/pkg/webhook/clients"
 	"github.com/harvester/harvester/pkg/webhook/config"
 	"github.com/harvester/harvester/pkg/webhook/resources/addon"
-	"github.com/harvester/harvester/pkg/webhook/resources/bundle"
-	"github.com/harvester/harvester/pkg/webhook/resources/bundledeployment"
 	"github.com/harvester/harvester/pkg/webhook/resources/datavolume"
 	"github.com/harvester/harvester/pkg/webhook/resources/deployment"
 	"github.com/harvester/harvester/pkg/webhook/resources/keypair"
-	"github.com/harvester/harvester/pkg/webhook/resources/managedchart"
 	"github.com/harvester/harvester/pkg/webhook/resources/namespace"
 	"github.com/harvester/harvester/pkg/webhook/resources/networkattachmentdefinition"
 	"github.com/harvester/harvester/pkg/webhook/resources/node"
@@ -121,7 +118,6 @@ func Validation(clients *clients.Clients, options *config.Options, crdExists boo
 			clients.LonghornFactory.Longhorn().V1beta2().Volume().Cache(),
 			clients.ClusterFactory.Cluster().V1beta1().Cluster().Cache(),
 			clients.ClusterFactory.Cluster().V1beta1().Machine().Cache(),
-			clients.RancherManagementFactory.Management().V3().ManagedChart().Cache(),
 			clients.HarvesterFactory.Harvesterhci().V1beta1().Version().Cache(),
 			clients.HarvesterFactory.Harvesterhci().V1beta1().VirtualMachineBackup().Cache(),
 			clients.HarvesterFactory.Harvesterhci().V1beta1().ScheduleVMBackup().Cache(),
@@ -166,7 +162,6 @@ func Validation(clients *clients.Clients, options *config.Options, crdExists boo
 			clients.KubevirtFactory.Kubevirt().V1().VirtualMachine().Cache(),
 			clients.KubevirtFactory.Kubevirt().V1().VirtualMachineInstance().Cache(),
 			clients.KubevirtFactory.Kubevirt().V1().VirtualMachineInstanceMigration().Cache(),
-			clients.RancherManagementFactory.Management().V3().Feature().Cache(),
 			clients.LonghornFactory.Longhorn().V1beta2().Volume().Cache(),
 			clients.CoreFactory.Core().V1().PersistentVolumeClaim().Cache(),
 			clients.HarvesterNetworkFactory.Network().V1beta1().ClusterNetwork().Cache(),
@@ -179,11 +174,7 @@ func Validation(clients *clients.Clients, options *config.Options, crdExists boo
 			clients.HarvesterFactory.Harvesterhci().V1beta1().VirtualMachineTemplate().Cache(),
 			clients.HarvesterFactory.Harvesterhci().V1beta1().VirtualMachineTemplateVersion().Cache(),
 			clients.HarvesterFactory.Harvesterhci().V1beta1().KeyPair().Cache()),
-		managedchart.NewValidator(),
-		bundle.NewValidator(),
-		bundledeployment.NewValidator(
-			clients.FleetFactory.Fleet().V1alpha1().Cluster().Cache(),
-		),
+
 		storageclass.NewValidator(
 			clients.StorageFactory.Storage().V1().StorageClass().Cache(),
 			clients.Core.Secret().Cache(),

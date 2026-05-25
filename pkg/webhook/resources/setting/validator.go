@@ -30,7 +30,6 @@ import (
 	lhv1beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	lhtypes "github.com/longhorn/longhorn-manager/types"
 	"github.com/rancher/lasso/pkg/log"
-	mgmtv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/rancher/wrangler/v3/pkg/slice"
 	"github.com/sirupsen/logrus"
@@ -107,7 +106,7 @@ var validateSettingFuncs = map[string]validateSettingFunc{
 	settings.ContainerdRegistrySettingName:                     validateContainerdRegistry,
 	settings.DefaultVMTerminationGracePeriodSecondsSettingName: validateDefaultVMTerminationGracePeriodSeconds,
 	settings.NTPServersSettingName:                             validateNTPServers,
-	settings.AutoRotateRKE2CertsSettingName:                    validateAutoRotateRKE2Certs,
+	settings.AutoRotateCertsSettingName:                         validateAutoRotateCerts,
 	settings.KubeconfigDefaultTokenTTLMinutesSettingName:       validateKubeConfigTTLSetting,
 	settings.AdditionalGuestMemoryOverheadRatioName:            validateAdditionalGuestMemoryOverheadRatio,
 	settings.MaxHotplugRatioSettingName:                        validateMaxHotplugRatio,
@@ -130,7 +129,7 @@ var validateSettingUpdateFuncs = map[string]validateSettingUpdateFunc{
 	settings.ContainerdRegistrySettingName:                     validateUpdateContainerdRegistry,
 	settings.DefaultVMTerminationGracePeriodSecondsSettingName: validateUpdateDefaultVMTerminationGracePeriodSeconds,
 	settings.NTPServersSettingName:                             validateUpdateNTPServers,
-	settings.AutoRotateRKE2CertsSettingName:                    validateUpdateAutoRotateRKE2Certs,
+	settings.AutoRotateCertsSettingName:                         validateUpdateAutoRotateCerts,
 	settings.KubeconfigDefaultTokenTTLMinutesSettingName:       validateUpdateKubeConfigTTLSetting,
 	settings.AdditionalGuestMemoryOverheadRatioName:            validateUpdateAdditionalGuestMemoryOverheadRatio,
 	settings.MaxHotplugRatioSettingName:                        validateUpdateMaxHotplugRatio,
@@ -149,7 +148,6 @@ func NewValidator(
 	vmCache ctlkubevirtv1.VirtualMachineCache,
 	vmiCache ctlkubevirtv1.VirtualMachineInstanceCache,
 	vmimCache ctlkubevirtv1.VirtualMachineInstanceMigrationCache,
-	featureCache mgmtv3.FeatureCache,
 	lhVolumeCache ctllhv1b2.VolumeCache,
 	pvcCache ctlcorev1.PersistentVolumeClaimCache,
 	cnCache ctlnetworkv1.ClusterNetworkCache,
@@ -167,7 +165,6 @@ func NewValidator(
 		vmCache:            vmCache,
 		vmiCache:           vmiCache,
 		vmimCache:          vmimCache,
-		featureCache:       featureCache,
 		lhVolumeCache:      lhVolumeCache,
 		pvcCache:           pvcCache,
 		cnCache:            cnCache,
@@ -227,7 +224,6 @@ type settingValidator struct {
 	vmCache            ctlkubevirtv1.VirtualMachineCache
 	vmiCache           ctlkubevirtv1.VirtualMachineInstanceCache
 	vmimCache          ctlkubevirtv1.VirtualMachineInstanceMigrationCache
-	featureCache       mgmtv3.FeatureCache
 	lhVolumeCache      ctllhv1b2.VolumeCache
 	pvcCache           ctlcorev1.PersistentVolumeClaimCache
 	cnCache            ctlnetworkv1.ClusterNetworkCache
@@ -949,7 +945,7 @@ func validateSSLParameters(setting *v1beta1.Setting) error {
 	}
 
 	// TODO: Validate ciphers
-	// Currently, there's no easy way to actually tell what Ciphers are supported by rke2-ingress-nginx,
+	// Currently, there's no easy way to actually tell what Ciphers are supported by the gateway,
 	// we need to tell users where to look for ciphers in docs.
 	return nil
 }
@@ -2047,41 +2043,41 @@ func validateUpdateDefaultVMTerminationGracePeriodSeconds(_ *types.Request, _ *v
 	return validateDefaultVMTerminationGracePeriodSeconds(newSetting)
 }
 
-func validateAutoRotateRKE2CertsHelper(value string) error {
+func validateAutoRotateCertsHelper(value string) error {
 	if value == "" {
 		return nil
 	}
 
-	autoRotateRKE2Certs := &settings.AutoRotateRKE2Certs{}
-	if err := json.Unmarshal([]byte(value), autoRotateRKE2Certs); err != nil {
+	autoRotateCerts := &settings.AutoRotateCerts{}
+	if err := json.Unmarshal([]byte(value), autoRotateCerts); err != nil {
 		return err
 	}
 
-	if autoRotateRKE2Certs.ExpiringInHours <= 0 {
+	if autoRotateCerts.ExpiringInHours <= 0 {
 		return fmt.Errorf("expiringInHours can't be negative or zero")
 	}
 
 	largestExpiringInHours := 24*365 - 1
-	if autoRotateRKE2Certs.ExpiringInHours > largestExpiringInHours {
+	if autoRotateCerts.ExpiringInHours > largestExpiringInHours {
 		return fmt.Errorf("expiringInHours can't be large than %d", largestExpiringInHours)
 	}
 
 	return nil
 }
 
-func validateAutoRotateRKE2Certs(setting *v1beta1.Setting) error {
-	if err := validateAutoRotateRKE2CertsHelper(setting.Default); err != nil {
+func validateAutoRotateCerts(setting *v1beta1.Setting) error {
+	if err := validateAutoRotateCertsHelper(setting.Default); err != nil {
 		return werror.NewInvalidError(err.Error(), settings.KeywordDefault)
 	}
 
-	if err := validateAutoRotateRKE2CertsHelper(setting.Value); err != nil {
+	if err := validateAutoRotateCertsHelper(setting.Value); err != nil {
 		return werror.NewInvalidError(err.Error(), settings.KeywordValue)
 	}
 	return nil
 }
 
-func validateUpdateAutoRotateRKE2Certs(_ *types.Request, _ *v1beta1.Setting, newSetting *v1beta1.Setting) error {
-	return validateAutoRotateRKE2Certs(newSetting)
+func validateUpdateAutoRotateCerts(_ *types.Request, _ *v1beta1.Setting, newSetting *v1beta1.Setting) error {
+	return validateAutoRotateCerts(newSetting)
 }
 
 func validateKubeConfigTTLSettingHelper(value string) error {

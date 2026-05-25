@@ -429,7 +429,7 @@ func buildPromoteJob(namespace string, node *corev1.Node, promoteImage string) *
 	nodeRoleEtcd := node.Labels[HarvesterWitnessNodeLabelKey]
 	promoteParameter := ""
 	if nodeRoleEtcd == "true" {
-		promoteParameter = "rke.cattle.io/etcd-role=true"
+		promoteParameter = "node-role.kubernetes.io/etcd="
 	}
 	hostPathDirectory := corev1.HostPathDirectory
 	job := &batchv1.Job{

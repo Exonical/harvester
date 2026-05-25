@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	loggingv1 "github.com/kube-logging/logging-operator/pkg/sdk/logging/api/v1beta1"
-	mgmtv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
+
 	"github.com/rancher/wrangler/v3/pkg/name"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -56,7 +56,7 @@ var (
 	testLoggingInfraName   = name.SafeConcatName(testUpgradeLogName, util.UpgradeLogInfraComponent)
 	testFluentbitAgentName = name.SafeConcatName(testUpgradeLogName, util.UpgradeLogFluentbitAgentComponent)
 	testPvcName            = name.SafeConcatName(testUpgradeLogName, util.UpgradeLogArchiveComponent)
-	testManagedChartName   = name.SafeConcatName(testUpgradeLogName, util.UpgradeLogOperatorComponent)
+
 	testClusterFlowName    = name.SafeConcatName(testUpgradeLogName, util.UpgradeLogFlowComponent)
 	testDeploymentName     = name.SafeConcatName(testUpgradeLogName, util.UpgradeLogDownloaderComponent)
 )
@@ -88,10 +88,6 @@ func newTestLoggingBuilder() *loggingBuilder {
 func newTestFluentbitAgentBuilder() *fluentbitAgentBuilder {
 	return newFluentbitAgentBuilder(testFluentbitAgentName).
 		WithLabel(util.LabelUpgradeLog, testUpgradeLogName)
-}
-
-func newTestManagedChartBuilder() *managedChartBuilder {
-	return newManagedChartBuilder(testManagedChartName)
 }
 
 func newTestPvcBuilder() *pvcBuilder {
@@ -349,70 +345,6 @@ func TestHandler_OnJobChange(t *testing.T) {
 
 		var actual output
 		actual.job, actual.err = handler.OnJobChange(tc.given.key, tc.given.job)
-
-		if tc.expected.upgradeLog != nil {
-			var err error
-			actual.upgradeLog, err = handler.upgradeLogCache.Get(util.HarvesterSystemNamespaceName, testUpgradeLogName)
-			assert.Nil(t, err)
-			emptyConditionsTime(tc.expected.upgradeLog.Status.Conditions)
-			emptyConditionsTime(actual.upgradeLog.Status.Conditions)
-			assert.Equal(t, tc.expected.upgradeLog, actual.upgradeLog, "case %q", tc.name)
-		}
-	}
-}
-
-func TestHandler_OnManagedChartChange(t *testing.T) {
-	type input struct {
-		key          string
-		managedChart *mgmtv3.ManagedChart
-		upgradeLog   *harvesterv1.UpgradeLog
-	}
-	type output struct {
-		managedChart *mgmtv3.ManagedChart
-		upgradeLog   *harvesterv1.UpgradeLog
-		err          error
-	}
-	var testCases = []struct {
-		name     string
-		given    input
-		expected output
-	}{
-		{
-			name: "The logging-operator ManagedChart is not ready, should therefore keep the respective UpgradeLog resource untouched",
-			given: input{
-				key:          testManagedChartName,
-				managedChart: newTestManagedChartBuilder().WithLabel(util.LabelUpgradeLog, testUpgradeLogName).Build(),
-				upgradeLog:   newTestUpgradeLogBuilder().Build(),
-			},
-			expected: output{
-				upgradeLog: newTestUpgradeLogBuilder().Build(),
-			},
-		},
-		{
-			name: "The logging-operator ManagedChart is ready, should therefore reflect on the UpgradeLog resource",
-			given: input{
-				key:          testManagedChartName,
-				managedChart: newTestManagedChartBuilder().WithLabel(util.LabelUpgradeLog, testUpgradeLogName).Ready().Build(),
-				upgradeLog:   newTestUpgradeLogBuilder().Build(),
-			},
-			expected: output{
-				upgradeLog: newTestUpgradeLogBuilder().
-					OperatorDeployedCondition(corev1.ConditionTrue, "", "").
-					LoggingOperatorSource(testManagedChartName).Build(),
-			},
-		},
-	}
-	for _, tc := range testCases {
-		var clientset = fake.NewSimpleClientset(tc.given.upgradeLog)
-
-		var handler = &handler{
-			namespace:        util.HarvesterSystemNamespaceName,
-			upgradeLogClient: fakeclients.UpgradeLogClient(clientset.HarvesterhciV1beta1().UpgradeLogs),
-			upgradeLogCache:  fakeclients.UpgradeLogCache(clientset.HarvesterhciV1beta1().UpgradeLogs),
-		}
-
-		var actual output
-		actual.managedChart, actual.err = handler.OnManagedChartChange(tc.given.key, tc.given.managedChart)
 
 		if tc.expected.upgradeLog != nil {
 			var err error
@@ -686,7 +618,6 @@ func TestHandler_OnUpgradeLogChange(t *testing.T) {
 		clusterOutput *loggingv1.ClusterOutput
 		logging       *loggingv1.Logging
 		fbagent       *loggingv1.FluentbitAgent
-		managedChart  *mgmtv3.ManagedChart
 		pvc           *corev1.PersistentVolumeClaim
 		upgrade       *harvesterv1.Upgrade
 		upgradeLog    *harvesterv1.UpgradeLog
@@ -697,7 +628,6 @@ func TestHandler_OnUpgradeLogChange(t *testing.T) {
 		deployment    *appsv1.Deployment
 		logging       *loggingv1.Logging
 		fbagent       *loggingv1.FluentbitAgent
-		managedChart  *mgmtv3.ManagedChart
 		pvc           *corev1.PersistentVolumeClaim
 		service       *corev1.Service
 		upgrade       *harvesterv1.Upgrade
@@ -721,22 +651,20 @@ func TestHandler_OnUpgradeLogChange(t *testing.T) {
 			},
 		},
 		{
-			name: "Both Addon and ManagedChart do not exist, therefore install the ManagedChart",
+			name: "No Addon exists, logging operator deployment is logged",
 			given: input{
 				key: testUpgradeLogName,
 				upgradeLog: newTestUpgradeLogBuilder().
 					UpgradeLogReadyCondition(corev1.ConditionUnknown, "", "").Build(),
 			},
 			expected: output{
-				managedChart: prepareOperator(newTestUpgradeLogBuilder().Build()),
 				upgradeLog: newTestUpgradeLogBuilder().
 					UpgradeLogReadyCondition(corev1.ConditionUnknown, "", "").
-					OperatorDeployedCondition(corev1.ConditionUnknown, "", "").
-					LoggingOperatorSource(testManagedChartName).Build(),
+					OperatorDeployedCondition(corev1.ConditionUnknown, "", "").Build(),
 			},
 		},
 		{
-			name: "There exists an enabled rancher-logging Addon, therefore skip the ManagedChart installation",
+			name: "There exists an enabled rancher-logging Addon, therefore skip installation",
 			given: input{
 				key:   testUpgradeLogName,
 				addon: newAddonBuilder(util.RancherLoggingName).Enable(true).Build(),
@@ -973,10 +901,6 @@ func TestHandler_OnUpgradeLogChange(t *testing.T) {
 			var err = clientset.Tracker().Add(tc.given.fbagent)
 			assert.Nil(t, err, "mock resource fluentbitAgent should add into fake controller tracker")
 		}
-		if tc.given.managedChart != nil {
-			var err = clientset.Tracker().Add(tc.given.managedChart)
-			assert.Nil(t, err, "mock resource managedChart should add into fake controller tracker")
-		}
 		if tc.given.upgrade != nil {
 			var err = clientset.Tracker().Add(tc.given.upgrade)
 			assert.Nil(t, err, "mock resource upgrade should add into fake controller tracker")
@@ -994,8 +918,6 @@ func TestHandler_OnUpgradeLogChange(t *testing.T) {
 			deploymentClient:    fakeclients.DeploymentClient(clientset.AppsV1().Deployments),
 			loggingClient:       fakeclients.LoggingClient(clientset.LoggingV1beta1().Loggings),
 			fbagentClient:       fakeclients.FluentbitAgentClient(clientset.LoggingV1beta1().FluentbitAgents),
-			managedChartClient:  fakeclients.ManagedChartClient(clientset.ManagementV3().ManagedCharts),
-			managedChartCache:   fakeclients.ManagedChartCache(clientset.ManagementV3().ManagedCharts),
 			pvcClient:           fakeclients.PersistentVolumeClaimClient(clientset.CoreV1().PersistentVolumeClaims),
 			serviceClient:       fakeclients.ServiceClient(clientset.CoreV1().Services),
 			upgradeClient:       fakeclients.UpgradeClient(clientset.HarvesterhciV1beta1().Upgrades),
@@ -1060,12 +982,6 @@ func TestHandler_OnUpgradeLogChange(t *testing.T) {
 			var err error
 			actual.fbagent, err = handler.fbagentClient.Get(testFluentbitAgentName, metav1.GetOptions{})
 			assert.True(t, apierrors.IsNotFound(err), "case %q", tc.name)
-		}
-
-		if tc.expected.managedChart != nil {
-			var err error
-			actual.managedChart, err = handler.managedChartClient.Get(util.FleetLocalNamespaceName, testManagedChartName, metav1.GetOptions{})
-			assert.Nil(t, err)
 		}
 
 		if tc.expected.pvc != nil {

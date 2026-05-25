@@ -4,7 +4,6 @@ import (
 	"crypto/subtle"
 	"fmt"
 	"net/http"
-	"net/url"
 	"runtime/debug"
 	"strings"
 
@@ -16,7 +15,6 @@ import (
 
 	"github.com/harvester/harvester/pkg/api/backuptarget"
 	"github.com/harvester/harvester/pkg/api/kubeconfig"
-	"github.com/harvester/harvester/pkg/api/proxy"
 	"github.com/harvester/harvester/pkg/api/readyz"
 	"github.com/harvester/harvester/pkg/api/supportbundle"
 	"github.com/harvester/harvester/pkg/api/uiinfo"
@@ -74,7 +72,7 @@ func (r *Router) Routes(h router.Handlers) http.Handler {
 
 	readyzHandlerv1 := harvesterServer.NewHandler(readyz.NewReadyzHandler(
 		r.scaled.CoreFactory.Core().V1().Pod().Cache(),
-		r.scaled.Management.RKEFactory.Rke().V1().RKEControlPlane().Cache()))
+		r.scaled.CoreFactory.Core().V1().Node().Cache()))
 	m.Path("/v1/harvester/readyz").Methods("GET").Handler(authMiddleware(r.scaled.CoreFactory.Core().V1().Secret().Cache(), readyzHandlerv1))
 
 	// --- END of preposition routes ---
@@ -110,21 +108,6 @@ func (r *Router) Routes(h router.Handlers) http.Handler {
 	vueUI := ui.Vue
 	m.Handle("/dashboard/", vueUI.IndexFile())
 	m.PathPrefix("/dashboard/").Handler(vueUI.IndexFileOnNotFound())
-
-	if r.options.RancherURL != "" {
-		host, scheme, err := parseRancherServerURL(r.options.RancherURL)
-		if err != nil {
-			logrus.Fatal(err)
-		}
-		rancherHandler := &proxy.Handler{
-			Host:   host,
-			Scheme: scheme,
-		}
-		m.PathPrefix("/v3-public/").Handler(rancherHandler)
-		m.PathPrefix("/v3/").Handler(rancherHandler)
-		m.PathPrefix("/v1/userpreferences").Handler(rancherHandler)
-		m.PathPrefix("/v1/management.cattle.io.setting").Handler(rancherHandler)
-	}
 
 	m.NotFoundHandler = router.Routes(h)
 
@@ -204,15 +187,3 @@ func recoveryMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func parseRancherServerURL(endpoint string) (string, string, error) {
-	if endpoint == "" {
-		return "", "", nil
-	}
-
-	u, err := url.Parse(endpoint)
-	if err != nil {
-		return "", "", err
-	}
-
-	return u.Host, u.Scheme, nil
-}

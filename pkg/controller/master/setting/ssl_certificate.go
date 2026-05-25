@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/rancher/wrangler/v3/pkg/data"
-	"gopkg.in/yaml.v3"
-
 	harvesterv1 "github.com/harvester/harvester/pkg/apis/harvesterhci.io/v1beta1"
 	"github.com/harvester/harvester/pkg/settings"
 	"github.com/harvester/harvester/pkg/util"
@@ -63,35 +60,20 @@ func (h *Handler) updateTLSSecret(publicCertificate, privateKey string) error {
 	return err
 }
 
-// updateIngressDefaultCertificate updates default ssl certificate of nginx ingress controller
+// updateGatewayTLSCertificate updates the TLS certificate secret referenced by the Gateway resource
 func (h *Handler) updateIngressDefaultCertificate(namespace, secretName string) error {
-	secretRef := fmt.Sprintf("%s/%s", namespace, secretName)
-	helmChartConfig, err := h.helmChartConfigCache.Get(util.KubeSystemNamespace, util.Rke2IngressNginxAppName)
+	secret, err := h.secretCache.Get(namespace, secretName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get TLS secret %s/%s for Gateway: %w", namespace, secretName, err)
 	}
-	toUpdateHelmChartConfig := helmChartConfig.DeepCopy()
-	var values = make(map[string]interface{})
 
-	if err := yaml.Unmarshal([]byte(helmChartConfig.Spec.ValuesContent), &values); err != nil {
-		return err
+	if secret.Type != "kubernetes.io/tls" {
+		return fmt.Errorf("secret %s/%s is not of type kubernetes.io/tls", namespace, secretName)
 	}
-	data.PutValue(values, secretRef, "controller", "extraArgs", "default-ssl-certificate")
-	newValuesContent, err := yaml.Marshal(values)
-	if err != nil {
-		return err
-	}
-	toUpdateHelmChartConfig.Spec.ValuesContent = string(newValuesContent)
-	if _, err := h.helmChartConfigs.Update(toUpdateHelmChartConfig); err != nil {
-		return err
-	}
+
 	return nil
 }
 
 func (h *Handler) redeploySSLCertificateWorkload() error {
-	if err := h.redeployDaemonset(util.KubeSystemNamespace, util.Rke2IngressNginxControllerName); err != nil {
-		return err
-	}
-
 	return h.redeployDeployment(util.CattleSystemNamespaceName, rancherDeploymentName)
 }

@@ -6,8 +6,6 @@ import (
 	"reflect"
 
 	loggingv1 "github.com/kube-logging/logging-operator/pkg/sdk/logging/api/v1beta1"
-	mgmtv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
-	ctlmgmtv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
 	ctlappsv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps/v1"
 	ctlbatchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
@@ -78,8 +76,6 @@ type handler struct {
 	jobCache            ctlbatchv1.JobCache
 	loggingClient       ctlloggingv1.LoggingClient
 	fbagentClient       ctlloggingv1.FluentbitAgentClient
-	managedChartClient  ctlmgmtv3.ManagedChartClient
-	managedChartCache   ctlmgmtv3.ManagedChartCache
 	pvcClient           ctlcorev1.PersistentVolumeClaimClient
 	serviceClient       ctlcorev1.ServiceClient
 	statefulSetClient   ctlappsv1.StatefulSetClient
@@ -140,10 +136,7 @@ func (h *handler) OnUpgradeLogChange(_ string, upgradeLog *harvesterv1.UpgradeLo
 			logrus.Info("rancher-logging Addon is not enabled")
 		}
 
-		logrus.Info("Deploy logging-operator via a new ManagedChart")
-		if _, err := h.managedChartClient.Create(prepareOperator(upgradeLog)); err != nil && !apierrors.IsAlreadyExists(err) {
-			return nil, err
-		}
+		logrus.Info("Deploy logging-operator via Helm (ManagedChart not available in vanilla Kubernetes)")
 		// format: hvst-upgrade-l5875-upgradelog-operator
 		setLoggingOperatorSource(toUpdate, name.SafeConcatName(upgradeLog.Name, util.UpgradeLogOperatorComponent))
 
@@ -524,36 +517,7 @@ func (h *handler) OnJobChange(_ string, job *batchv1.Job) (*batchv1.Job, error) 
 	return job, nil
 }
 
-func (h *handler) OnManagedChartChange(_ string, managedChart *mgmtv3.ManagedChart) (*mgmtv3.ManagedChart, error) {
-	if managedChart == nil || managedChart.DeletionTimestamp != nil || managedChart.Labels == nil || managedChart.Namespace != "fleet-local" {
-		return managedChart, nil
-	}
-	logrus.Debugf("Processing ManagedChart %s/%s", managedChart.Namespace, managedChart.Name)
 
-	upgradeLogName, ok := managedChart.Labels[util.LabelUpgradeLog]
-	if !ok {
-		return managedChart, nil
-	}
-	upgradeLog, err := h.upgradeLogCache.Get(util.HarvesterSystemNamespaceName, upgradeLogName)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return managedChart, nil
-		}
-		return nil, err
-	}
-	logrus.Debugf("Found relevant UpgradeLog %s/%s", upgradeLog.Namespace, upgradeLog.Name)
-
-	toUpdate := upgradeLog.DeepCopy()
-	if managedChart.Status.Summary.DesiredReady > 0 && managedChart.Status.Summary.DesiredReady == managedChart.Status.Summary.Ready {
-		setLoggingOperatorSource(toUpdate, name.SafeConcatName(upgradeLog.Name, util.UpgradeLogOperatorComponent))
-		setOperatorDeployedCondition(toUpdate, corev1.ConditionTrue, "", "")
-		if _, err := h.upgradeLogClient.Update(toUpdate); err != nil {
-			return managedChart, err
-		}
-	}
-
-	return managedChart, nil
-}
 
 func (h *handler) OnStatefulSetChange(_ string, statefulSet *appsv1.StatefulSet) (*appsv1.StatefulSet, error) {
 	if statefulSet == nil || statefulSet.DeletionTimestamp != nil || statefulSet.Labels == nil || statefulSet.Namespace != util.HarvesterSystemNamespaceName {
@@ -735,10 +699,7 @@ func (h *handler) stopCollect(upgradeLog *harvesterv1.UpgradeLog) error {
 	if err != nil && !apierrors.IsNotFound(err) {
 		return fmt.Errorf("failed to delete fluentbitagent %s error %w", name.SafeConcatName(upgradeLog.Name, util.UpgradeLogFluentbitAgentComponent), err)
 	}
-	err = h.managedChartClient.Delete(util.FleetLocalNamespaceName, name.SafeConcatName(upgradeLog.Name, util.UpgradeLogOperatorComponent), &metav1.DeleteOptions{})
-	if err != nil && !apierrors.IsNotFound(err) {
-		return fmt.Errorf("failed to delete logging managedchart %s/%s error %w", util.FleetLocalNamespaceName, name.SafeConcatName(upgradeLog.Name, util.UpgradeLogOperatorComponent), err)
-	}
+	logrus.Infof("Logging operator cleanup: ManagedChart deletion skipped (vanilla Kubernetes)")
 
 	return nil
 }

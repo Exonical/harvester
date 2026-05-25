@@ -3,8 +3,6 @@ package clients
 import (
 	"context"
 
-	ctlfleetv1 "github.com/rancher/rancher/pkg/generated/controllers/fleet.cattle.io"
-	rancherv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io"
 	"github.com/rancher/wrangler/v3/pkg/clients"
 	ctlappsv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps"
 	ctrlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core"
@@ -33,11 +31,9 @@ type Clients struct {
 	KubevirtFactory          *ctlkubevirtv1.Factory
 	CNIFactory               *ctlcniv1.Factory
 	SnapshotFactory          *ctlsnapshotv1.Factory
-	FleetFactory             *ctlfleetv1.Factory
 	StorageFactory           *storagev1.Factory
 	LonghornFactory          *ctllonghornv1.Factory
 	ClusterFactory           *ctlclusterv1.Factory
-	RancherManagementFactory *rancherv3.Factory
 	CoreFactory              *ctrlcorev1.Factory
 	HarvesterNetworkFactory  *ctlnetwork.Factory
 	LoggingFactory           *ctlloggingv1.Factory
@@ -100,15 +96,6 @@ func New(ctx context.Context, rest *rest.Config, threadiness int, crdExists bool
 		return nil, err
 	}
 
-	fleetFactory, err := ctlfleetv1.NewFactoryFromConfigWithOptions(rest, clients.FactoryOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = fleetFactory.Start(ctx, threadiness); err != nil {
-		return nil, err
-	}
-
 	storageFactory, err := storagev1.NewFactoryFromConfigWithOptions(rest, clients.FactoryOptions)
 	if err != nil {
 		return nil, err
@@ -124,11 +111,6 @@ func New(ctx context.Context, rest *rest.Config, threadiness int, crdExists bool
 	}
 
 	clusterFactory, err := ctlclusterv1.NewFactoryFromConfigWithOptions(rest, clients.FactoryOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	rancherFactory, err := rancherv3.NewFactoryFromConfigWithOptions(rest, clients.FactoryOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -181,11 +163,9 @@ func New(ctx context.Context, rest *rest.Config, threadiness int, crdExists bool
 		KubevirtFactory:          kubevirtFactory,
 		CNIFactory:               cniFactory,
 		SnapshotFactory:          snapshotFactory,
-		FleetFactory:             fleetFactory,
 		StorageFactory:           storageFactory,
 		LonghornFactory:          longhornFactory,
 		ClusterFactory:           clusterFactory,
-		RancherManagementFactory: rancherFactory,
 		CoreFactory:              coreFactory,
 		HarvesterNetworkFactory:  harvesterNetworkFactory,
 		LoggingFactory:           loggingFactory,

@@ -24,7 +24,6 @@ import (
 
 	appsv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/apps/v1"
 	batchv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/batch/v1"
-	catalogv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/catalog.cattle.io/v1"
 	cdiv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/cdi.kubevirt.io/v1beta1"
 	clusterv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/cluster.x-k8s.io/v1beta1"
 	harvesterhciv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/harvesterhci.io/v1beta1"
@@ -33,11 +32,9 @@ import (
 	kubevirtv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/kubevirt.io/v1"
 	loggingv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/logging.banzaicloud.io/v1beta1"
 	longhornv1beta2 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/longhorn.io/v1beta2"
-	managementv3 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/management.cattle.io/v3"
 	monitoringv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/monitoring.coreos.com/v1"
 	networkv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/network.harvesterhci.io/v1beta1"
 	networkingv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/networking.k8s.io/v1"
-	provisioningv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/provisioning.cattle.io/v1"
 	snapshotv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/snapshot.storage.k8s.io/v1"
 	storagev1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/storage.k8s.io/v1"
 	upgradev1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/upgrade.cattle.io/v1"
@@ -54,7 +51,6 @@ type Interface interface {
 	CoreV1() corev1.CoreV1Interface
 	AppsV1() appsv1.AppsV1Interface
 	BatchV1() batchv1.BatchV1Interface
-	CatalogV1() catalogv1.CatalogV1Interface
 	CdiV1beta1() cdiv1beta1.CdiV1beta1Interface
 	ClusterV1beta1() clusterv1beta1.ClusterV1beta1Interface
 	HarvesterhciV1beta1() harvesterhciv1beta1.HarvesterhciV1beta1Interface
@@ -63,11 +59,9 @@ type Interface interface {
 	KubevirtV1() kubevirtv1.KubevirtV1Interface
 	LoggingV1beta1() loggingv1beta1.LoggingV1beta1Interface
 	LonghornV1beta2() longhornv1beta2.LonghornV1beta2Interface
-	ManagementV3() managementv3.ManagementV3Interface
 	MonitoringV1() monitoringv1.MonitoringV1Interface
 	NetworkV1beta1() networkv1beta1.NetworkV1beta1Interface
 	NetworkingV1() networkingv1.NetworkingV1Interface
-	ProvisioningV1() provisioningv1.ProvisioningV1Interface
 	SnapshotV1() snapshotv1.SnapshotV1Interface
 	StorageV1() storagev1.StorageV1Interface
 	UpgradeV1() upgradev1.UpgradeV1Interface
@@ -81,7 +75,6 @@ type Clientset struct {
 	coreV1              *corev1.CoreV1Client
 	appsV1              *appsv1.AppsV1Client
 	batchV1             *batchv1.BatchV1Client
-	catalogV1           *catalogv1.CatalogV1Client
 	cdiV1beta1          *cdiv1beta1.CdiV1beta1Client
 	clusterV1beta1      *clusterv1beta1.ClusterV1beta1Client
 	harvesterhciV1beta1 *harvesterhciv1beta1.HarvesterhciV1beta1Client
@@ -90,11 +83,9 @@ type Clientset struct {
 	kubevirtV1          *kubevirtv1.KubevirtV1Client
 	loggingV1beta1      *loggingv1beta1.LoggingV1beta1Client
 	longhornV1beta2     *longhornv1beta2.LonghornV1beta2Client
-	managementV3        *managementv3.ManagementV3Client
 	monitoringV1        *monitoringv1.MonitoringV1Client
 	networkV1beta1      *networkv1beta1.NetworkV1beta1Client
 	networkingV1        *networkingv1.NetworkingV1Client
-	provisioningV1      *provisioningv1.ProvisioningV1Client
 	snapshotV1          *snapshotv1.SnapshotV1Client
 	storageV1           *storagev1.StorageV1Client
 	upgradeV1           *upgradev1.UpgradeV1Client
@@ -115,11 +106,6 @@ func (c *Clientset) AppsV1() appsv1.AppsV1Interface {
 // BatchV1 retrieves the BatchV1Client
 func (c *Clientset) BatchV1() batchv1.BatchV1Interface {
 	return c.batchV1
-}
-
-// CatalogV1 retrieves the CatalogV1Client
-func (c *Clientset) CatalogV1() catalogv1.CatalogV1Interface {
-	return c.catalogV1
 }
 
 // CdiV1beta1 retrieves the CdiV1beta1Client
@@ -162,11 +148,6 @@ func (c *Clientset) LonghornV1beta2() longhornv1beta2.LonghornV1beta2Interface {
 	return c.longhornV1beta2
 }
 
-// ManagementV3 retrieves the ManagementV3Client
-func (c *Clientset) ManagementV3() managementv3.ManagementV3Interface {
-	return c.managementV3
-}
-
 // MonitoringV1 retrieves the MonitoringV1Client
 func (c *Clientset) MonitoringV1() monitoringv1.MonitoringV1Interface {
 	return c.monitoringV1
@@ -180,11 +161,6 @@ func (c *Clientset) NetworkV1beta1() networkv1beta1.NetworkV1beta1Interface {
 // NetworkingV1 retrieves the NetworkingV1Client
 func (c *Clientset) NetworkingV1() networkingv1.NetworkingV1Interface {
 	return c.networkingV1
-}
-
-// ProvisioningV1 retrieves the ProvisioningV1Client
-func (c *Clientset) ProvisioningV1() provisioningv1.ProvisioningV1Interface {
-	return c.provisioningV1
 }
 
 // SnapshotV1 retrieves the SnapshotV1Client
@@ -268,10 +244,6 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*Clientset,
 	if err != nil {
 		return nil, err
 	}
-	cs.catalogV1, err = catalogv1.NewForConfigAndClient(&configShallowCopy, httpClient)
-	if err != nil {
-		return nil, err
-	}
 	cs.cdiV1beta1, err = cdiv1beta1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
@@ -304,10 +276,6 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*Clientset,
 	if err != nil {
 		return nil, err
 	}
-	cs.managementV3, err = managementv3.NewForConfigAndClient(&configShallowCopy, httpClient)
-	if err != nil {
-		return nil, err
-	}
 	cs.monitoringV1, err = monitoringv1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
@@ -317,10 +285,6 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*Clientset,
 		return nil, err
 	}
 	cs.networkingV1, err = networkingv1.NewForConfigAndClient(&configShallowCopy, httpClient)
-	if err != nil {
-		return nil, err
-	}
-	cs.provisioningV1, err = provisioningv1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -368,7 +332,6 @@ func New(c rest.Interface) *Clientset {
 	cs.coreV1 = corev1.New(c)
 	cs.appsV1 = appsv1.New(c)
 	cs.batchV1 = batchv1.New(c)
-	cs.catalogV1 = catalogv1.New(c)
 	cs.cdiV1beta1 = cdiv1beta1.New(c)
 	cs.clusterV1beta1 = clusterv1beta1.New(c)
 	cs.harvesterhciV1beta1 = harvesterhciv1beta1.New(c)
@@ -377,11 +340,9 @@ func New(c rest.Interface) *Clientset {
 	cs.kubevirtV1 = kubevirtv1.New(c)
 	cs.loggingV1beta1 = loggingv1beta1.New(c)
 	cs.longhornV1beta2 = longhornv1beta2.New(c)
-	cs.managementV3 = managementv3.New(c)
 	cs.monitoringV1 = monitoringv1.New(c)
 	cs.networkV1beta1 = networkv1beta1.New(c)
 	cs.networkingV1 = networkingv1.New(c)
-	cs.provisioningV1 = provisioningv1.New(c)
 	cs.snapshotV1 = snapshotv1.New(c)
 	cs.storageV1 = storagev1.New(c)
 	cs.upgradeV1 = upgradev1.New(c)

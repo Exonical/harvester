@@ -14,8 +14,8 @@ const (
 	machineControlPlaneControllerName = "machine-control-plane-controller"
 )
 
-// machineControlPlaneHandler add cluster.x-k8s.io/control-plane to machine
-// if rke.cattle.io/control-plane-role label is true
+// machineControlPlaneHandler adds cluster.x-k8s.io/control-plane to machine
+// if node-role.kubernetes.io/control-plane label is set
 type machineControlPlaneHandler struct {
 	machineClient ctlclusterv1.MachineClient
 }
@@ -37,7 +37,7 @@ func (h *machineControlPlaneHandler) OnMachineChanged(_ string, machine *cluster
 		return machine, nil
 	}
 
-	if v1, ok := machine.Labels[util.RKEControlPlaneRoleLabel]; ok && v1 == "true" {
+	if _, ok := machine.Labels[util.ControlPlaneRoleLabel]; ok {
 		if v2, ok := machine.Labels[clusterv1.MachineControlPlaneLabel]; !ok || v2 != "true" {
 			machineCopy := machine.DeepCopy()
 			machineCopy.Labels[clusterv1.MachineControlPlaneLabel] = "true"

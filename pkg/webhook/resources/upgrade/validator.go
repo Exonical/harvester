@@ -11,8 +11,6 @@ import (
 	"time"
 
 	lhv1beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
-	fleetv1alpha1 "github.com/rancher/fleet/pkg/apis/fleet.cattle.io/v1alpha1"
-	mgmtv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
 	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/sirupsen/logrus"
 	admissionregv1 "k8s.io/api/admissionregistration/v1"
@@ -44,8 +42,7 @@ const (
 	upgradeCleanupLabel                       = "harvesterhci.io/upgradeCleanup"
 	skipWebhookAnnotation                     = "harvesterhci.io/skipWebhook"
 	skipSingleReplicaDetachedVol              = "harvesterhci.io/skipSingleReplicaDetachedVol"
-	rkeInternalIPAnnotation                   = "rke2.io/internal-ip"
-	managedChartNamespace                     = util.FleetLocalNamespaceName
+	nodeInternalIPAnnotation                  = "node.kubernetes.io/internal-ip"
 	defaultNewImageSize                uint64 = 13 * 1024 * 1024 * 1024 // 13GB, this value aggregates all tarball image sizes. It may change in the future.
 	defaultImageGCHighThresholdPercent        = 85.0                    // default value in kubelet config
 	defaultMinCertsExpirationInDay            = 7
@@ -58,7 +55,6 @@ func NewValidator(
 	lhVolumes ctllhv1.VolumeCache,
 	clusters ctlclusterv1.ClusterCache,
 	machines ctlclusterv1.MachineCache,
-	managedChartCache mgmtv3.ManagedChartCache,
 	versionCache ctlharvesterv1.VersionCache,
 	vmBackupCache ctlharvesterv1.VirtualMachineBackupCache,
 	svmbackupCache ctlharvesterv1.ScheduleVMBackupCache,
@@ -75,7 +71,6 @@ func NewValidator(
 		lhVolumes:         lhVolumes,
 		clusters:          clusters,
 		machines:          machines,
-		managedChartCache: managedChartCache,
 		versionCache:      versionCache,
 		vmBackupCache:     vmBackupCache,
 		svmbackupCache:    svmbackupCache,
@@ -96,7 +91,6 @@ type upgradeValidator struct {
 	lhVolumes         ctllhv1.VolumeCache
 	clusters          ctlclusterv1.ClusterCache
 	machines          ctlclusterv1.MachineCache
-	managedChartCache mgmtv3.ManagedChartCache
 	versionCache      ctlharvesterv1.VersionCache
 	vmBackupCache     ctlharvesterv1.VirtualMachineBackupCache
 	svmbackupCache    ctlharvesterv1.ScheduleVMBackupCache
@@ -244,10 +238,6 @@ func (v *upgradeValidator) checkResources(upgrade *v1beta1.Upgrade) error {
 		return err
 	}
 
-	if err := v.checkManagedCharts(); err != nil {
-		return err
-	}
-
 	if err := v.checkAddons(); err != nil {
 		return err
 	}
@@ -305,25 +295,6 @@ func (v *upgradeValidator) hasDegradedVolume() (bool, error) {
 	return false, nil
 }
 
-func (v *upgradeValidator) checkManagedCharts() error {
-	managedCharts, err := v.managedChartCache.List(managedChartNamespace, labels.Everything())
-	if err != nil {
-		return werror.NewInternalError(fmt.Sprintf("can't list managed charts, err: %+v", err))
-	}
-
-	for _, managedChart := range managedCharts {
-		for _, condition := range managedChart.Status.Conditions {
-			if condition.Type == fleetv1alpha1.BundleConditionReady {
-				if condition.Status != corev1.ConditionTrue {
-					return werror.NewBadRequest(fmt.Sprintf("managed chart %s is not ready, please wait for it to be ready or fix it", managedChart.Name))
-				}
-				break
-			}
-		}
-	}
-
-	return nil
-}
 
 func (v *upgradeValidator) checkAddons() error {
 	addons, err := v.addons.List(metav1.NamespaceAll, labels.Everything())
@@ -413,9 +384,9 @@ func (v *upgradeValidator) checkNodes(upgrade *v1beta1.Upgrade) error {
 }
 
 func (v *upgradeValidator) checkDiskSpace(node *corev1.Node) error {
-	internalIP, ok := node.Annotations[rkeInternalIPAnnotation]
+	internalIP, ok := node.Annotations[nodeInternalIPAnnotation]
 	if !ok {
-		return werror.NewInternalError(fmt.Sprintf("node %s doesn't have %s annotation", node.Name, rkeInternalIPAnnotation))
+		return werror.NewInternalError(fmt.Sprintf("node %s doesn't have %s annotation", node.Name, nodeInternalIPAnnotation))
 	}
 
 	kubeletPort := node.Status.DaemonEndpoints.KubeletEndpoint.Port
@@ -651,7 +622,7 @@ func (v *upgradeValidator) Delete(_ *types.Request, oldObj runtime.Object) error
 	}
 
 	// If fleet-local/local cluster.provisioning.cattle.io is upgrading, deny removing upgrade CR request.
-	// If upgrade is removed, the cluster may have different RKE2 version nodes. It will make next upgrade fail.
+	// If upgrade is removed, the cluster may have different Kubernetes version nodes. It will make next upgrade fail.
 	if v1beta1.NodesUpgraded.IsUnknown(oldUpgrade) {
 		return werror.NewBadRequest("node upgrade is in progressing, please wait for it to be provisioned")
 	}
@@ -749,7 +720,7 @@ func (v *upgradeValidator) checkCerts(upgrade *v1beta1.Upgrade) error {
 	expirationDate := time.Now().AddDate(0, 0, minCertsExpirationInDay)
 	if earliestExpiringCert.NotAfter.Before(expirationDate) {
 		return werror.NewBadRequest(fmt.Sprintf(
-			"earliest expiring cert for default/kubernetes ClusterIP is %s, it will expire in %s days. Please rotate RKE2 certificates.", earliestExpiringCert.NotAfter, strconv.Itoa(minCertsExpirationInDay)))
+			"earliest expiring cert for default/kubernetes ClusterIP is %s, it will expire in %s days. Please rotate certificates.", earliestExpiringCert.NotAfter, strconv.Itoa(minCertsExpirationInDay)))
 	}
 	return nil
 }

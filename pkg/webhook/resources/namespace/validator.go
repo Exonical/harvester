@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"slices"
 
-	v3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
 	admissionregv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -98,7 +97,7 @@ func (v *namespaceValidator) resourceQuotaValidation(oldNamespace, newNamespace 
 
 // Check if used resource quota is larger than new resource quota
 func (v *namespaceValidator) checkIfNewResourceQuotaIsSufficient(rq *corev1.ResourceQuota, nrqStr string) error {
-	var nrq *v3.NamespaceResourceQuota
+	var nrq *rqutils.NamespaceResourceQuota
 	if err := json.Unmarshal([]byte(nrqStr), &nrq); err != nil {
 		return fmt.Errorf("invalid NamespaceResourceQuota %s, error: %w", nrqStr, err)
 	}

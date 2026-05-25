@@ -13,12 +13,10 @@ import (
 	"github.com/harvester/harvester/pkg/controller/master/keypair"
 	"github.com/harvester/harvester/pkg/controller/master/kubevirt"
 	"github.com/harvester/harvester/pkg/controller/master/machine"
-	"github.com/harvester/harvester/pkg/controller/master/mcmsettings"
 	"github.com/harvester/harvester/pkg/controller/master/migration"
 	"github.com/harvester/harvester/pkg/controller/master/node"
 	"github.com/harvester/harvester/pkg/controller/master/nodedrain"
 	"github.com/harvester/harvester/pkg/controller/master/pvc"
-	"github.com/harvester/harvester/pkg/controller/master/rancher"
 	"github.com/harvester/harvester/pkg/controller/master/resourcequota"
 	"github.com/harvester/harvester/pkg/controller/master/schedulevmbackup"
 	"github.com/harvester/harvester/pkg/controller/master/setting"
@@ -46,7 +44,6 @@ var registerFuncs = []registerFunc{
 	keypair.Register,
 	kubevirt.Register,
 	machine.ControlPlaneRegister,
-	mcmsettings.Register,
 	migration.Register,
 	node.CPUManagerRegister,
 	node.CPUModelConfigRegister,
@@ -57,7 +54,6 @@ var registerFuncs = []registerFunc{
 	node.VolumeDetachRegister,
 	nodedrain.Register,
 	pvc.Register,
-	rancher.Register,
 	resourcequota.Register,
 	schedulevmbackup.Register,
 	setting.Register,

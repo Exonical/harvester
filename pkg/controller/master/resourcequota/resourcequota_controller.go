@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	v3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	ctlv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
@@ -67,7 +66,7 @@ func scaleResourceQuotaOnDemand(rq *corev1.ResourceQuota, rqStr string) (bool, e
 		logrus.Debugf("resourcequota %s/%s related namespace has empty %s annotation, skip scaling", rq.Namespace, rq.Name, util.CattleAnnotationResourceQuota)
 		return update, errSkipScaling
 	}
-	var rqBase *v3.NamespaceResourceQuota
+	var rqBase *rqutils.NamespaceResourceQuota
 	if err := json.Unmarshal([]byte(rqStr), &rqBase); err != nil {
 		logrus.Warnf("resourcequota %s/%s related namespace has invalid %s annotation %s, skip scaling, error %s", rq.Namespace, rq.Name, util.CattleAnnotationResourceQuota, rqStr, err.Error())
 		return update, err

@@ -5,11 +5,8 @@ import (
 
 	"github.com/harvester/go-common/common"
 	harvesterServer "github.com/harvester/harvester/pkg/server/http"
-	"github.com/harvester/harvester/pkg/util"
 	longhornTypes "github.com/longhorn/longhorn-manager/types"
-	rkev1 "github.com/rancher/rancher/pkg/apis/rke.cattle.io/v1"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	"github.com/rancher/wrangler/v3/pkg/generic"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -17,14 +14,14 @@ import (
 )
 
 type ReadyzHandler struct {
-	podCache ctlcorev1.PodCache
-	rkeCache generic.CacheInterface[*rkev1.RKEControlPlane]
+	podCache  ctlcorev1.PodCache
+	nodeCache ctlcorev1.NodeCache
 }
 
-func NewReadyzHandler(podCache ctlcorev1.PodCache, rkeCache generic.CacheInterface[*rkev1.RKEControlPlane]) *ReadyzHandler {
+func NewReadyzHandler(podCache ctlcorev1.PodCache, nodeCache ctlcorev1.NodeCache) *ReadyzHandler {
 	return &ReadyzHandler{
-		podCache: podCache,
-		rkeCache: rkeCache,
+		podCache:  podCache,
+		nodeCache: nodeCache,
 	}
 }
 
@@ -50,7 +47,7 @@ func (h *ReadyzHandler) Do(ctx *harvesterServer.Ctx) (harvesterServer.ResponseBo
 }
 
 func (h *ReadyzHandler) clusterReady() (bool, string) {
-	if ready, msg := h.rkeReady(); !ready {
+	if ready, msg := h.nodesReady(); !ready {
 		return false, msg
 	}
 
@@ -65,21 +62,31 @@ func (h *ReadyzHandler) clusterReady() (bool, string) {
 	return true, ""
 }
 
-func (h *ReadyzHandler) rkeReady() (bool, string) {
-	rkeControlPlane, err := h.rkeCache.Get(
-		util.FleetLocalNamespaceName,
-		util.LocalClusterName)
+func (h *ReadyzHandler) nodesReady() (bool, string) {
+	nodes, err := h.nodeCache.List(labels.Everything())
 	if err != nil {
-		logrus.Debugf("rkeControlPlane not found: %s", err.Error())
-		return false, "rkeControlPlane not found"
+		logrus.Debugf("failed to list nodes: %s", err.Error())
+		return false, "failed to list nodes"
 	}
 
-	for _, cond := range rkeControlPlane.Status.Conditions {
-		if cond.Type == "Ready" && cond.Status == corev1.ConditionTrue {
-			return true, ""
+	if len(nodes) == 0 {
+		return false, "no nodes found"
+	}
+
+	for _, node := range nodes {
+		ready := false
+		for _, cond := range node.Status.Conditions {
+			if cond.Type == corev1.NodeReady && cond.Status == corev1.ConditionTrue {
+				ready = true
+				break
+			}
+		}
+		if !ready {
+			return false, "not all nodes are ready"
 		}
 	}
-	return false, "rkeControlPlane is not ready"
+
+	return true, ""
 }
 
 func (h *ReadyzHandler) longhornReady() (bool, string) {
