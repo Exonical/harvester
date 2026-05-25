@@ -52,7 +52,7 @@ var (
 	StorageNetwork                         = NewSetting(StorageNetworkName, "")
 	RWXNetwork                             = NewSetting(RWXNetworkSettingName, `{"share-storage-network":false}`)
 	DefaultVMTerminationGracePeriodSeconds = NewSetting(DefaultVMTerminationGracePeriodSecondsSettingName, "120")
-	AutoRotateRKE2CertsSet                 = NewSetting(AutoRotateRKE2CertsSettingName, InitAutoRotateRKE2Certs())
+	AutoRotateCertsSet                     = NewSetting(AutoRotateCertsSettingName, InitAutoRotateCerts())
 	KubeconfigTTL                          = NewSetting(KubeconfigDefaultTokenTTLMinutesSettingName, "0") // "0" is default value to ensure token does not expire
 	LonghornV2DataEngineEnabled            = NewSetting(LonghornV2DataEngineSettingName, "false")
 	LHIMResources                          = NewSetting(LHIMResourcesSettingName, `{"cpu":{}}`)
@@ -97,7 +97,7 @@ const (
 	DefaultVMTerminationGracePeriodSecondsSettingName = "default-vm-termination-grace-period-seconds"
 	SupportBundleExpirationSettingName                = "support-bundle-expiration"
 	NTPServersSettingName                             = "ntp-servers"
-	AutoRotateRKE2CertsSettingName                    = "auto-rotate-rke2-certs"
+	AutoRotateCertsSettingName                        = "auto-rotate-certs"
 	KubeconfigDefaultTokenTTLMinutesSettingName       = "kubeconfig-default-token-ttl-minutes"
 	SupportBundleNodeCollectionTimeoutName            = "support-bundle-node-collection-timeout"
 	SupportBundleFileNameSettingName                  = "support-bundle-file-name"

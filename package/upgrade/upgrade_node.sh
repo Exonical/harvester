@@ -122,7 +122,7 @@ if [ "$container_state" = "CONTAINER_EXITED" ]; then
 
     # workaround for https://github.com/harvester/harvester/issues/2865
     # kubelet could start from old manifest first and generate a new manifest later.
-    rm -f /var/lib/rancher/rke2/agent/pod-manifests/*
+    rm -f /etc/kubernetes/manifests/*
 
     reboot
     exit 0
@@ -150,10 +150,10 @@ EOF
 
 preload_images()
 {
-  export CONTAINER_RUNTIME_ENDPOINT=unix:///$HOST_DIR/run/k3s/containerd/containerd.sock
-  export CONTAINERD_ADDRESS=$HOST_DIR/run/k3s/containerd/containerd.sock
+  export CONTAINER_RUNTIME_ENDPOINT=unix:///$HOST_DIR/run/containerd/containerd.sock
+  export CONTAINERD_ADDRESS=$HOST_DIR/run/containerd/containerd.sock
 
-  CTR="$HOST_DIR/$(readlink $HOST_DIR/var/lib/rancher/rke2/bin)/ctr"
+  CTR="$(command -v ctr 2>/dev/null || echo "$HOST_DIR/usr/local/bin/ctr")"
   if [ -z "$CTR" ];then
     echo "Fail to get host ctr binary."
     exit 1
@@ -161,12 +161,12 @@ preload_images()
 
   import_image_archives_from_repo "common" "$UPGRADE_TMP_DIR"
 
-  # RKE2 images might be needed during nodes upgrade.
-  # A waiting-for-upgrade node doesn't load RKE2 images yet because its RKE2
-  # server/agent doesn't restart. We need to preload RKE2 images beforehand.
-  import_image_archives_from_repo "rke2" "$UPGRADE_TMP_DIR"
+  # Kubernetes images might be needed during nodes upgrade.
+  # A waiting-for-upgrade node doesn't load images yet because its
+  # kubelet doesn't restart. We need to preload images beforehand.
+  import_image_archives_from_repo "kubernetes" "$UPGRADE_TMP_DIR"
 
-  download_image_archives_from_repo "rke2" $HOST_DIR/var/lib/rancher/rke2/agent/images
+  download_image_archives_from_repo "kubernetes" $HOST_DIR/var/lib/containerd/images
   download_image_archives_from_repo "agent" $HOST_DIR/var/lib/rancher/agent/images
 }
 
@@ -377,63 +377,43 @@ command_pre_drain() {
   # KubeVirt's pdb might cause drain fail
   wait_evacuation_pdb_gone
 
-  remove_rke2_canal_config
-  disable_rke2_charts
 }
 
-get_node_rke2_version() {
+get_node_kubernetes_version() {
   kubectl get node $HARVESTER_UPGRADE_NODE_NAME -o yaml | yq -e e '.status.nodeInfo.kubeletVersion' -
 }
 
-upgrade_rke2() {
+upgrade_kubernetes() {
   patch_file=$(mktemp -p $UPGRADE_TMP_DIR)
 
 cat > $patch_file <<EOF
 spec:
-  kubernetesVersion: $REPO_RKE2_VERSION
-  rkeConfig: {}
+  kubernetesVersion: $REPO_KUBERNETES_VERSION
 EOF
 
   kubectl patch clusters.provisioning.cattle.io local -n fleet-local --patch-file $patch_file --type merge
 }
 
-wait_rke2_upgrade() {
-  # RKE2 doesn't show '-rcX' in nodeInfo, so we remove '-rcX' in $REPO_RKE2_VERSION.
-  # Warning: we can't upgrade from a '-rcX' to another in the same minor version like v1.22.12-rc1+rke2r1 to v1.22.12-rc2+rke2r1.
-  REPO_RKE2_VERSION_WITHOUT_RC=$(echo -n $REPO_RKE2_VERSION | sed 's/-rc[[:digit:]]*//g')
-  until [ "$(get_node_rke2_version)" = "$REPO_RKE2_VERSION_WITHOUT_RC" ]
+wait_kubernetes_upgrade() {
+  REPO_KUBERNETES_VERSION_NORMALIZED=$(echo -n $REPO_KUBERNETES_VERSION | sed 's/-rc[[:digit:]]*//g')
+  until [ "$(get_node_kubernetes_version)" = "$REPO_KUBERNETES_VERSION_NORMALIZED" ]
   do
-    echo "Waiting for RKE2 to be upgraded..."
+    echo "Waiting for Kubernetes to be upgraded..."
     sleep 5
   done
 }
 
-clean_rke2_archives() {
-  yq -e -o=json e ".images.rke2" "$CACHED_BUNDLE_METADATA" | jq -r '.[] | [.list, .archive] | @tsv' |
+clean_kubernetes_archives() {
+  yq -e -o=json e ".images.kubernetes" "$CACHED_BUNDLE_METADATA" | jq -r '.[] | [.list, .archive] | @tsv' |
     while IFS=$'\t' read -r list archive; do
-      rm -f "$HOST_DIR/var/lib/rancher/rke2/agent/images/$(basename $archive)"
-      rm -f "$HOST_DIR/var/lib/rancher/rke2/agent/images/$(basename $list)"
+      rm -f "$HOST_DIR/var/lib/containerd/images/$(basename $archive)"
+      rm -f "$HOST_DIR/var/lib/containerd/images/$(basename $list)"
     done
-}
-
-remove_rke2_canal_config() {
-  rm -f "$HOST_DIR/var/lib/rancher/rke2/server/manifests/rke2-canal-config.yaml"
-}
-
-# Disable snapshot-controller related charts because we manage them in Harvester.
-# RKE2 enables these charts by default after v1.25.7 (https://github.com/rancher/rke2/releases/tag/v1.25.7%2Brke2r1)
-disable_rke2_charts() {
-  cat > "$HOST_DIR/etc/rancher/rke2/config.yaml.d/40-disable-charts.yaml" <<EOF
-disable:
-- rke2-snapshot-controller
-- rke2-snapshot-controller-crd
-- rke2-snapshot-validation-webhook
-EOF
 }
 
 # host / is mounted under /host in the upgrade pod
 set_max_pods() {
-cat > /host/etc/rancher/rke2/config.yaml.d/99-max-pods.yaml <<EOF
+cat > /host/etc/kubernetes/harvester/99-max-pods.yaml <<EOF
 kubelet-arg:
 - "max-pods=$MAX_PODS"
 EOF
@@ -446,7 +426,7 @@ set_reserved_resource() {
   # make system:kube cpu reservation ration 2:3
   local systemReservedCPU=$((reservedCPU * 2 * 2 / 5))
   local kubeReservedCPU=$((reservedCPU * 2 * 3 / 5))
-  local systemReserverConfig="$HOST_DIR/etc/rancher/rke2/config.yaml.d/99-z00-harvester-reserved-resources.yaml"
+  local systemReserverConfig="$HOST_DIR/etc/kubernetes/harvester/99-z00-harvester-reserved-resources.yaml"
   if [ ! -e $systemReserverConfig ]; then
     cat > $systemReserverConfig << EOF
 kubelet-arg+:
@@ -456,10 +436,10 @@ EOF
   fi
 }
 
-set_rke2_device_permissions() {
-  local rke2DevicePermissionConfig="$HOST_DIR/etc/rancher/rke2/config.yaml.d/91-harvester-cdi.yaml"
-  if [ ! -e $rke2DevicePermissionConfig ]; then
-    cat > $rke2DevicePermissionConfig << EOF
+set_device_permissions() {
+  local devicePermissionConfig="$HOST_DIR/etc/kubernetes/harvester/91-harvester-cdi.yaml"
+  if [ ! -e $devicePermissionConfig ]; then
+    cat > $devicePermissionConfig << EOF
 # handle the permission issue of Longhorn for CDI
 "nonroot-devices": true
 EOF
@@ -819,12 +799,12 @@ command_post_drain() {
   # update max-pods to 200
   set_max_pods
   set_reserved_resource
-  set_rke2_device_permissions
+  set_device_permissions
   set_oem_cleanup_kubelet
-  # A post-drain signal from Rancher doesn't mean RKE2 agent/server is already patched and restarted
-  # Let's wait until the RKE2 settled.
-  wait_rke2_upgrade
-  clean_rke2_archives
+  # A post-drain signal doesn't mean kubelet is already patched and restarted.
+  # Let's wait until Kubernetes is settled.
+  wait_kubernetes_upgrade
+  clean_kubernetes_archives
 
   kubectl taint node $HARVESTER_UPGRADE_NODE_NAME kubevirt.io/drain- || true
 
@@ -843,9 +823,6 @@ command_single_node_upgrade() {
   wait_repo
   detect_repo
 
-  remove_rke2_canal_config
-  disable_rke2_charts
-
   # Copy OS things, we need to shutdown repo VMs.
   NEW_OS_SQUASHFS_IMAGE_FILE=$(mktemp -p $UPGRADE_TMP_DIR)
   download_file "$UPGRADE_REPO_SQUASHFS_IMAGE" "$NEW_OS_SQUASHFS_IMAGE_FILE"
@@ -854,20 +831,20 @@ command_single_node_upgrade() {
   upgrade-helper vm-live-migrate-detector "$HARVESTER_UPGRADE_NODE_NAME" --shutdown --upgrade "$HARVESTER_UPGRADE_NAME"
   wait_vms_out
 
-  echo "wait for fleet bundles before upgrading RKE2"
+  echo "wait for fleet bundles before upgrading Kubernetes"
   # wait all fleet bundles in limited time
   wait_for_fleet_bundles
 
   # update max-pods to 200
   set_max_pods
   set_reserved_resource
-  set_rke2_device_permissions
+  set_device_permissions
   set_oem_cleanup_kubelet
-  # Upgarde RKE2
-  upgrade_rke2
+  # Upgrade Kubernetes
+  upgrade_kubernetes
 
-  wait_rke2_upgrade
-  clean_rke2_archives
+  wait_kubernetes_upgrade
+  clean_kubernetes_archives
 
   generate_networkmanager_config
 

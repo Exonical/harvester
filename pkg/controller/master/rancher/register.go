@@ -171,7 +171,7 @@ func (h *Handler) createIngressExposeService() error {
 		Spec: corev1.ServiceSpec{
 			Type: corev1.ServiceTypeNodePort,
 			Selector: map[string]string{
-				appLabelName: util.Rke2IngressNginxAppName,
+				appLabelName: util.GatewayName,
 			},
 			Ports: []corev1.ServicePort{
 				{

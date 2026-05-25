@@ -20,17 +20,17 @@ metadata:
 data:
   promote.sh: |-
     LONGHORN_NAMESPACE={{ .Values.longhorn.namespaceOverride | quote }}
-    {{`KUBECTL="/host/$(readlink /host/var/lib/rancher/rke2/bin)/kubectl"
+    {{`KUBECTL="/usr/local/bin/kubectl"
     YQ="/host/usr/bin/yq"
-    ROLE_LABELS="rke.cattle.io/control-plane-role=true rke.cattle.io/etcd-role=true"
+    ROLE_LABELS="node-role.kubernetes.io/control-plane= node-role.kubernetes.io/etcd="
     ETCD_ONLY=false
-    if [[ -n "$1" && $1 == "rke.cattle.io/etcd-role=true" ]]; then
+    if [[ -n "$1" && $1 == "node-role.kubernetes.io/etcd=" ]]; then
       ETCD_ONLY=true
       ROLE_LABELS=$1
     fi
 
     case $ROLE_LABELS in
-      "rke.cattle.io/control-plane-role=true rke.cattle.io/etcd-role=true" | "rke.cattle.io/etcd-role=true")
+      "node-role.kubernetes.io/control-plane= node-role.kubernetes.io/etcd=" | "node-role.kubernetes.io/etcd=")
     ;;
       *)
       echo "ROLE $ROLE_LABELS is not supported."
@@ -69,7 +69,7 @@ data:
       sleep 2
     done
 
-    until $KUBECTL get rkebootstraps.rke.cattle.io "${CUSTOM_MACHINE}" -n fleet-local &> /dev/null
+    until $KUBECTL get bootstraps.bootstrap.cluster.x-k8s.io "${CUSTOM_MACHINE}" -n fleet-local &> /dev/null
     do
       echo Waiting for bootstrap object of $CUSTOM_MACHINE...
       sleep 2
@@ -77,25 +77,16 @@ data:
     `}}
 
     VIP=$($KUBECTL get configmap vip -n harvester-system -o=jsonpath='{.data.ip}')
-    cat > /host/etc/rancher/rke2/config.yaml.d/90-harvester-server.yaml <<EOF
-    cni: multus,canal
+    cat > /host/etc/kubernetes/harvester/90-harvester-server.yaml <<EOF
     cluster-cidr: {{ .Values.promote.clusterPodCIDR }}
     service-cidr: {{ .Values.promote.clusterServiceCIDR }}
     cluster-dns: {{ .Values.promote.clusterDNS }}
     tls-san:
       - $VIP
-    audit-policy-file: /etc/rancher/rke2/config.yaml.d/92-harvester-kube-audit-policy.yaml
+    audit-policy-file: /etc/kubernetes/harvester/92-harvester-kube-audit-policy.yaml
     EOF
 
     {{`
-    # Disable snapshot-controller related charts because we manage them in Harvester.
-    # RKE2 enables these charts by default after v1.25.7 (https://github.com/rancher/rke2/releases/tag/v1.25.7%2Brke2r1)
-    cat > /host/etc/rancher/rke2/config.yaml.d/40-disable-charts.yaml <<EOF
-    disable:
-    - rke2-snapshot-controller
-    - rke2-snapshot-controller-crd
-    - rke2-snapshot-validation-webhook
-    EOF
 
     # make sure we should not have any related label/taint on the node
     if [[ $ETCD_ONLY == false ]]; then
@@ -111,7 +102,7 @@ data:
     $KUBECTL label --overwrite -n fleet-local machines.cluster.x-k8s.io $CUSTOM_MACHINE $ROLE_LABELS
     $KUBECTL label --overwrite -n fleet-local machines.cluster.x-k8s.io $CUSTOM_MACHINE cluster.x-k8s.io/control-plane=true
     $KUBECTL label --overwrite -n fleet-local secret $PLAN_SECRET $ROLE_LABELS
-    $KUBECTL label --overwrite -n fleet-local rkebootstraps.rke.cattle.io $CUSTOM_MACHINE $ROLE_LABELS
+    $KUBECTL label --overwrite -n fleet-local bootstraps.bootstrap.cluster.x-k8s.io $CUSTOM_MACHINE $ROLE_LABELS
 
     kickout_longhorn_node()
     {
@@ -209,8 +200,8 @@ data:
     }
 
     echo "Start update cpu-manager-policy option..."
-    KUBECTL="$HOST_DIR/$(readlink $HOST_DIR/var/lib/rancher/rke2/bin)/kubectl"
-    CPU_MANAGER_CONFIG_FILE="$HOST_DIR/etc/rancher/rke2/config.yaml.d/99-z01-harvester-cpu-manager.yaml"
+    KUBECTL="/usr/local/bin/kubectl"
+    CPU_MANAGER_CONFIG_FILE="$HOST_DIR/etc/kubernetes/harvester/99-z01-harvester-cpu-manager.yaml"
     STATIC_POLICY="static"
     NONE_POLICY="none"
     CPU_MANAGER_STATE_FILE="$HOST_DIR/var/lib/kubelet/cpu_manager_state"
@@ -230,12 +221,10 @@ data:
 
     printf 'kubelet-arg+:\n- "cpu-manager-policy=%s"' "$NODE_POLICY" > $CPU_MANAGER_CONFIG_FILE
 
-    if chroot $HOST_DIR systemctl is-active --quiet rke2-server; then
-      manage_service "rke2-server"
-    elif chroot $HOST_DIR systemctl is-active --quiet rke2-agent; then
-      manage_service "rke2-agent"
+    if chroot $HOST_DIR systemctl is-active --quiet kubelet; then
+      manage_service "kubelet"
     else
-      echo "Error: Neither rke2-server nor rke2-agent are running."
+      echo "Error: kubelet is not running."
       exit 3
     fi
 

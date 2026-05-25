@@ -39,11 +39,11 @@ func (h *secretHandler) OnChanged(_ string, secret *v1.Secret) (*v1.Secret, erro
 		return secret, nil
 	}
 
-	if secret.Annotations[rke2PreDrainAnnotation] == "" && secret.Annotations[rke2PostDrainAnnotation] == "" {
+	if secret.Annotations[planPreDrainAnnotation] == "" && secret.Annotations[planPostDrainAnnotation] == "" {
 		return secret, nil
 	}
 
-	if secret.Annotations[rke2PreDrainAnnotation] == secret.Annotations[preDrainAnnotation] && secret.Annotations[rke2PostDrainAnnotation] == secret.Annotations[postDrainAnnotation] {
+	if secret.Annotations[planPreDrainAnnotation] == secret.Annotations[preDrainAnnotation] && secret.Annotations[planPostDrainAnnotation] == secret.Annotations[postDrainAnnotation] {
 		return secret, nil
 	}
 
@@ -116,7 +116,7 @@ func (h *secretHandler) OnChanged(_ string, secret *v1.Secret) (*v1.Secret, erro
 		h.secretController.EnqueueAfter(secret.Namespace, secret.Name, 5*time.Second)
 		return secret, err
 	case nodeStatePreDrained:
-		if secret.Annotations[rke2PostDrainAnnotation] != secret.Annotations[postDrainAnnotation] {
+		if secret.Annotations[planPostDrainAnnotation] != secret.Annotations[postDrainAnnotation] {
 			if err := checkEligibleToDrain(upgrade, nodeName); err != nil {
 				return nil, err
 			}
@@ -187,5 +187,5 @@ func checkEligibleToDrain(upgrade *harvesterv1.Upgrade, nodeName string) error {
 }
 
 func isUnderPreDrain(secret *v1.Secret) bool {
-	return secret.Annotations[rke2PreDrainAnnotation] != secret.Annotations[preDrainAnnotation]
+	return secret.Annotations[planPreDrainAnnotation] != secret.Annotations[preDrainAnnotation]
 }

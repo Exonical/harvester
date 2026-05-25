@@ -32,7 +32,7 @@ func Register(ctx context.Context, management *config.Management, options config
 	helmChartConfigs := management.HelmFactory.Helm().V1().HelmChartConfig()
 	nodeConfigs := management.NodeConfigFactory.Node().V1beta1().NodeConfig()
 	node := management.CoreFactory.Core().V1().Node()
-	rkeControlPlane := management.RKEFactory.Rke().V1().RKEControlPlane()
+	jobs := management.BatchFactory.Batch().V1().Job()
 	rancherSettings := management.RancherManagementFactory.Management().V3().Setting()
 	kubevirt := management.VirtFactory.Kubevirt().V1().KubeVirt()
 	namespaces := management.CoreFactory.Core().V1().Namespace()
@@ -66,7 +66,7 @@ func Register(ctx context.Context, management *config.Management, options config
 		nodeConfigsCache:     nodeConfigs.Cache(),
 		nodeClient:           node,
 		nodeCache:            node.Cache(),
-		rkeControlPlaneCache: rkeControlPlane.Cache(),
+		jobClient:            jobs,
 		rancherSettings:      rancherSettings,
 		rancherSettingsCache: rancherSettings.Cache(),
 		kubeVirtConfig:       kubevirt,
@@ -99,7 +99,7 @@ func Register(ctx context.Context, management *config.Management, options config
 		harvSettings.NTPServersSettingName:                       controller.syncNodeConfig,
 		harvSettings.LonghornV2DataEngineSettingName:             controller.syncNodeConfig,
 		harvSettings.LHIMResourcesSettingName:                    controller.syncLHIMResources,
-		harvSettings.AutoRotateRKE2CertsSettingName:              controller.syncAutoRotateRKE2Certs,
+		harvSettings.AutoRotateCertsSettingName:                   controller.syncAutoRotateCerts,
 		harvSettings.KubeconfigDefaultTokenTTLMinutesSettingName: controller.syncKubeconfigTTL,
 		harvSettings.AdditionalGuestMemoryOverheadRatioName:      controller.syncAdditionalGuestMemoryOverheadRatio,
 		harvSettings.MaxHotplugRatioSettingName:                  controller.syncMaxHotplugRatio,

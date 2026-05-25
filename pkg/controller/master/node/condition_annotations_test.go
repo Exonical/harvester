@@ -23,13 +23,9 @@ metadata:
     cluster.x-k8s.io/labels-from-machine: ""
     cluster.x-k8s.io/machine: custom-8b3d1bdf21ef
     csi.volume.kubernetes.io/nodeid: '{"driver.longhorn.io":"harvester-node-1"}'
-    etcd.rke2.cattle.io/local-snapshots-timestamp: "2026-01-19T05:35:10Z"
-    etcd.rke2.cattle.io/node-address: 10.115.52.90
-    etcd.rke2.cattle.io/node-name: harvester-node-1-9d108e7d
-    flannel.alpha.coreos.com/backend-data: '{"VNI":1,"VtepMAC":"0a:7d:b7:39:dc:d1"}'
-    flannel.alpha.coreos.com/backend-type: vxlan
-    flannel.alpha.coreos.com/kube-subnet-manager: "true"
-    flannel.alpha.coreos.com/public-ip: 10.115.52.90
+    network.cilium.io/ipv4-pod-cidr: 10.52.0.0/24
+    network.cilium.io/ipv4-health-ip: 10.52.0.173
+    network.cilium.io/cilium-managed: "true"
     harvesterhci.io/promote-status: complete
     kubevirt.io/heartbeat: "2026-01-19T05:35:16Z"
     kubevirt.io/ksm-handler-managed: "false"
@@ -38,12 +34,10 @@ metadata:
     node.alpha.kubernetes.io/ttl: "0"
     node.harvesterhci.io/ntp-service: '{"ntpSyncStatus":"synced","currentNtpServers":"0.suse.pool.ntp.org
       1.suse.pool.ntp.org"}'
-    rke2.io/encryption-config-hash: start-be0557c28851151a863e012edbe29a29048fb7b5bfd2e9e2a419925db3de3d7f
-    rke2.io/hostname: harvester-node-1
-    rke2.io/internal-ip: 10.115.52.90
-    rke2.io/node-args: '["server","--disable","rke2-snapshot-controller","--disable","rke2-snapshot-controller-crd","--disable","rke2-snapshot-validation-webhook","--agent-token","********","--cni","multus,canal","--kube-controller-manager-arg","cert-dir=/var/lib/rancher/rke2/server/tls/kube-controller-manager","--kube-controller-manager-arg","secure-port=10257","--kube-controller-manager-extra-mount","/var/lib/rancher/rke2/server/tls/kube-controller-manager:/var/lib/rancher/rke2/server/tls/kube-controller-manager","--kube-scheduler-arg","cert-dir=/var/lib/rancher/rke2/server/tls/kube-scheduler","--kube-scheduler-arg","secure-port=10259","--kube-scheduler-extra-mount","/var/lib/rancher/rke2/server/tls/kube-scheduler:/var/lib/rancher/rke2/server/tls/kube-scheduler","--node-label","harvesterhci.io/managed=true","--node-label","rke.cattle.io/machine=d4669472-188d-42e6-86cc-e4b2ddf76c88","--node-name","harvester-node-1","--private-registry","/etc/rancher/rke2/registries.yaml","--server","https://10.115.52.89:9345","--token","********","--kubelet-arg","max-pods=200","--kubelet-arg","system-reserved=cpu=400m","--kubelet-arg","kube-reserved=cpu=600m","--cluster-cidr","10.52.0.0/16","--service-cidr","10.53.0.0/16","--cluster-dns","10.53.0.10","--tls-san","10.115.52.92","--audit-policy-file","/etc/rancher/rke2/config.yaml.d/92-harvester-kube-audit-policy.yaml","--nonroot-devices","true","--apiVersion","audit.k8s.io/v1","--kind","Policy","--omitStages","ResponseStarted","--omitStages","ResponseComplete","--rules","[{level
+    node.kubernetes.io/instance-type: bare-metal
+    kubernetes.io/hostname: harvester-node-1
+    node.kubernetes.io/internal-ip: 10.115.52.90
       Metadata} {verbs [create delete patch]} {omitStages [ResponseStarted ResponseComplete]}]"]'
-    rke2.io/node-env: '{"RKE2_DATA_DIR":"/var/lib/rancher/rke2"}'
     volumes.kubernetes.io/controller-managed-attach-detach: "true"
   creationTimestamp: "2026-01-16T02:52:48Z"
   finalizers:
@@ -54,7 +48,7 @@ metadata:
   - wrangler.cattle.io/node-remove-controller
   labels:
     beta.kubernetes.io/arch: amd64
-    beta.kubernetes.io/instance-type: rke2
+    beta.kubernetes.io/instance-type: bare-metal
     beta.kubernetes.io/os: linux
     cpu-feature.node.kubevirt.io/abm: "true"
     cpu-feature.node.kubevirt.io/aes: "true"
@@ -442,10 +436,10 @@ metadata:
     network.harvesterhci.io/vlanconfig: nc
     node-role.kubernetes.io/control-plane: "true"
     node-role.kubernetes.io/etcd: "true"
-    node.kubernetes.io/instance-type: rke2
+    node.kubernetes.io/instance-type: bare-metal
     plan.upgrade.cattle.io/sync-additional-ca: 2c27af4f7e139d7c15346edc0adb200edade07eef796ef2c41ef923b
     plan.upgrade.cattle.io/system-agent-upgrader: cab0e3bd454d91beec8ee44425add5c2cd494696a84c38239deb82f1
-    rke.cattle.io/machine: d4669472-188d-42e6-86cc-e4b2ddf76c88
+    cluster.x-k8s.io/machine-id: d4669472-188d-42e6-86cc-e4b2ddf76c88
   name: harvester-node-1
   resourceVersion: "5610701"
   uid: 9221811e-1f0e-4958-9aba-468444971fcb
@@ -453,7 +447,7 @@ spec:
   podCIDR: 10.52.1.0/24
   podCIDRs:
   - 10.52.1.0/24
-  providerID: rke2://harvester-node-1
+  providerID: k8s://harvester-node-1
   taints:
   - effect: NoSchedule
     key: node.kubernetes.io/unreachable
@@ -562,7 +556,7 @@ status:
     - docker.io/rancher/hardened-calico:v3.30.3-build20251015
     sizeBytes: 685524019
   - names:
-    - docker.io/rancher/hardened-kubernetes:v1.34.2-rke2r1-build20251112
+    - registry.k8s.io/kube-apiserver:v1.34.2
     sizeBytes: 640304363
   - names:
     - docker.io/rancher/mirrored-grafana-grafana:11.5.5
@@ -606,7 +600,7 @@ status:
     - docker.io/rancher/fleet:v0.14.0
     sizeBytes: 319225891
   - names:
-    - docker.io/rancher/rke2-runtime:v1.34.2-rke2r1
+    - registry.k8s.io/kube-proxy:v1.34.2
     sizeBytes: 306299220
   - names:
     - docker.io/rancher/prom-prometheus:v3.2.1
@@ -698,7 +692,7 @@ status:
     containerRuntimeVersion: containerd://2.1.5-k3s1
     kernelVersion: 6.4.0-36-default
     kubeProxyVersion: ""
-    kubeletVersion: v1.34.2+rke2r1
+    kubeletVersion: v1.34.2
     machineID: 17b6fa03558170feeadfa60a6969a7c8
     operatingSystem: linux
     osImage: Harvester v1.7
@@ -728,13 +722,9 @@ metadata:
     cluster.x-k8s.io/labels-from-machine: ""
     cluster.x-k8s.io/machine: custom-8b3d1bdf21ef
     csi.volume.kubernetes.io/nodeid: '{"driver.longhorn.io":"harvester-node-1"}'
-    etcd.rke2.cattle.io/local-snapshots-timestamp: "2026-01-19T05:35:10Z"
-    etcd.rke2.cattle.io/node-address: 10.115.52.90
-    etcd.rke2.cattle.io/node-name: harvester-node-1-9d108e7d
-    flannel.alpha.coreos.com/backend-data: '{"VNI":1,"VtepMAC":"0a:7d:b7:39:dc:d1"}'
-    flannel.alpha.coreos.com/backend-type: vxlan
-    flannel.alpha.coreos.com/kube-subnet-manager: "true"
-    flannel.alpha.coreos.com/public-ip: 10.115.52.90
+    network.cilium.io/ipv4-pod-cidr: 10.52.0.0/24
+    network.cilium.io/ipv4-health-ip: 10.52.0.173
+    network.cilium.io/cilium-managed: "true"
     harvesterhci.io/promote-status: complete
     kubevirt.io/heartbeat: "2026-01-19T05:35:16Z"
     kubevirt.io/ksm-handler-managed: "false"
@@ -743,13 +733,10 @@ metadata:
     node.alpha.kubernetes.io/ttl: "0"
     node.harvesterhci.io/ntp-service: '{"ntpSyncStatus":"synced","currentNtpServers":"0.suse.pool.ntp.org
       1.suse.pool.ntp.org"}'
-    rke2.io/encryption-config-hash: start-be0557c28851151a863e012edbe29a29048fb7b5bfd2e9e2a419925db3de3d7f
-    rke2.io/hostname: harvester-node-1
-    rke2.io/internal-ip: 10.115.52.90
-    rke2.io/node-args: '["server","--disable","rke2-snapshot-controller","--disable","rke2-snapshot-controller-crd","--disable","rke2-snapshot-validation-webhook","--agent-token","********","--cni","multus,canal","--kube-controller-manager-arg","cert-dir=/var/lib/rancher/rke2/server/tls/kube-controller-manager","--kube-controller-manager-arg","secure-port=10257","--kube-controller-manager-extra-mount","/var/lib/rancher/rke2/server/tls/kube-controller-manager:/var/lib/rancher/rke2/server/tls/kube-controller-manager","--kube-scheduler-arg","cert-dir=/var/lib/rancher/rke2/server/tls/kube-scheduler","--kube-scheduler-arg","secure-port=10259","--kube-scheduler-extra-mount","/var/lib/rancher/rke2/server/tls/kube-scheduler:/var/lib/rancher/rke2/server/tls/kube-scheduler","--node-label","harvesterhci.io/managed=true","--node-label","rke.cattle.io/machine=d4669472-188d-42e6-86cc-e4b2ddf76c88","--node-name","harvester-node-1","--private-registry","/etc/rancher/rke2/registries.yaml","--server","https://10.115.52.89:9345","--token","********","--kubelet-arg","max-pods=200","--kubelet-arg","system-reserved=cpu=400m","--kubelet-arg","kube-reserved=cpu=600m","--cluster-cidr","10.52.0.0/16","--service-cidr","10.53.0.0/16","--cluster-dns","10.53.0.10","--tls-san","10.115.52.92","--audit-policy-file","/etc/rancher/rke2/config.yaml.d/92-harvester-kube-audit-policy.yaml","--nonroot-devices","true","--apiVersion","audit.k8s.io/v1","--kind","Policy","--omitStages","ResponseStarted","--omitStages","ResponseComplete","--rules","[{level
+    node.kubernetes.io/instance-type: bare-metal
+    kubernetes.io/hostname: harvester-node-1
+    node.kubernetes.io/internal-ip: 10.115.52.90
       Metadata} {verbs [create delete patch]} {omitStages [ResponseStarted ResponseComplete]}]"]'
-    rke2.io/node-config-hash: B7K5XHTPBGV6N3CTCEFP74JAZV5MJJODHOD3LWXR4PFYEL6Q6RKA====
-    rke2.io/node-env: '{"RKE2_DATA_DIR":"/var/lib/rancher/rke2"}'
     volumes.kubernetes.io/controller-managed-attach-detach: "true"
   creationTimestamp: "2026-01-16T02:52:48Z"
   finalizers:
@@ -760,7 +747,7 @@ metadata:
   - wrangler.cattle.io/node-remove-controller
   labels:
     beta.kubernetes.io/arch: amd64
-    beta.kubernetes.io/instance-type: rke2
+    beta.kubernetes.io/instance-type: bare-metal
     beta.kubernetes.io/os: linux
     cpu-feature.node.kubevirt.io/abm: "true"
     cpu-feature.node.kubevirt.io/aes: "true"
@@ -1148,10 +1135,10 @@ metadata:
     network.harvesterhci.io/vlanconfig: nc
     node-role.kubernetes.io/control-plane: "true"
     node-role.kubernetes.io/etcd: "true"
-    node.kubernetes.io/instance-type: rke2
+    node.kubernetes.io/instance-type: bare-metal
     plan.upgrade.cattle.io/sync-additional-ca: 2c27af4f7e139d7c15346edc0adb200edade07eef796ef2c41ef923b
     plan.upgrade.cattle.io/system-agent-upgrader: cab0e3bd454d91beec8ee44425add5c2cd494696a84c38239deb82f1
-    rke.cattle.io/machine: d4669472-188d-42e6-86cc-e4b2ddf76c88
+    cluster.x-k8s.io/machine-id: d4669472-188d-42e6-86cc-e4b2ddf76c88
   name: harvester-node-1
   resourceVersion: "5610701"
   uid: 9221811e-1f0e-4958-9aba-468444971fcb
@@ -1159,7 +1146,7 @@ spec:
   podCIDR: 10.52.1.0/24
   podCIDRs:
   - 10.52.1.0/24
-  providerID: rke2://harvester-node-1
+  providerID: k8s://harvester-node-1
   taints:
   - effect: NoSchedule
     key: node.kubernetes.io/unreachable
@@ -1268,7 +1255,7 @@ status:
     - docker.io/rancher/hardened-calico:v3.30.3-build20251015
     sizeBytes: 685524019
   - names:
-    - docker.io/rancher/hardened-kubernetes:v1.34.2-rke2r1-build20251112
+    - registry.k8s.io/kube-apiserver:v1.34.2
     sizeBytes: 640304363
   - names:
     - docker.io/rancher/mirrored-grafana-grafana:11.5.5
@@ -1312,7 +1299,7 @@ status:
     - docker.io/rancher/fleet:v0.14.0
     sizeBytes: 319225891
   - names:
-    - docker.io/rancher/rke2-runtime:v1.34.2-rke2r1
+    - registry.k8s.io/kube-proxy:v1.34.2
     sizeBytes: 306299220
   - names:
     - docker.io/rancher/prom-prometheus:v3.2.1
@@ -1404,7 +1391,7 @@ status:
     containerRuntimeVersion: containerd://2.1.5-k3s1
     kernelVersion: 6.4.0-36-default
     kubeProxyVersion: ""
-    kubeletVersion: v1.34.2+rke2r1
+    kubeletVersion: v1.34.2
     machineID: 17b6fa03558170feeadfa60a6969a7c8
     operatingSystem: linux
     osImage: Harvester v1.7
@@ -1434,13 +1421,9 @@ metadata:
     cluster.x-k8s.io/labels-from-machine: ""
     cluster.x-k8s.io/machine: custom-8b3d1bdf21ef
     csi.volume.kubernetes.io/nodeid: '{"driver.longhorn.io":"harvester-node-1"}'
-    etcd.rke2.cattle.io/local-snapshots-timestamp: "2026-01-19T05:35:10Z"
-    etcd.rke2.cattle.io/node-address: 10.115.52.90
-    etcd.rke2.cattle.io/node-name: harvester-node-1-9d108e7d
-    flannel.alpha.coreos.com/backend-data: '{"VNI":1,"VtepMAC":"0a:7d:b7:39:dc:d1"}'
-    flannel.alpha.coreos.com/backend-type: vxlan
-    flannel.alpha.coreos.com/kube-subnet-manager: "true"
-    flannel.alpha.coreos.com/public-ip: 10.115.52.90
+    network.cilium.io/ipv4-pod-cidr: 10.52.0.0/24
+    network.cilium.io/ipv4-health-ip: 10.52.0.173
+    network.cilium.io/cilium-managed: "true"
     harvesterhci.io/promote-status: complete
     kubevirt.io/heartbeat: "2026-01-19T05:35:16Z"
     kubevirt.io/ksm-handler-managed: "false"
@@ -1449,13 +1432,10 @@ metadata:
     node.alpha.kubernetes.io/ttl: "0"
     node.harvesterhci.io/ntp-service: '{"ntpSyncStatus":"synced","currentNtpServers":"0.suse.pool.ntp.org
       1.suse.pool.ntp.org"}'
-    rke2.io/encryption-config-hash: start-be0557c28851151a863e012edbe29a29048fb7b5bfd2e9e2a419925db3de3d7f
-    rke2.io/hostname: harvester-node-1
-    rke2.io/internal-ip: 10.115.52.90
-    rke2.io/node-args: '["server","--disable","rke2-snapshot-controller","--disable","rke2-snapshot-controller-crd","--disable","rke2-snapshot-validation-webhook","--agent-token","********","--cni","multus,canal","--kube-controller-manager-arg","cert-dir=/var/lib/rancher/rke2/server/tls/kube-controller-manager","--kube-controller-manager-arg","secure-port=10257","--kube-controller-manager-extra-mount","/var/lib/rancher/rke2/server/tls/kube-controller-manager:/var/lib/rancher/rke2/server/tls/kube-controller-manager","--kube-scheduler-arg","cert-dir=/var/lib/rancher/rke2/server/tls/kube-scheduler","--kube-scheduler-arg","secure-port=10259","--kube-scheduler-extra-mount","/var/lib/rancher/rke2/server/tls/kube-scheduler:/var/lib/rancher/rke2/server/tls/kube-scheduler","--node-label","harvesterhci.io/managed=true","--node-label","rke.cattle.io/machine=d4669472-188d-42e6-86cc-e4b2ddf76c88","--node-name","harvester-node-1","--private-registry","/etc/rancher/rke2/registries.yaml","--server","https://10.115.52.89:9345","--token","********","--kubelet-arg","max-pods=200","--kubelet-arg","system-reserved=cpu=400m","--kubelet-arg","kube-reserved=cpu=600m","--cluster-cidr","10.52.0.0/16","--service-cidr","10.53.0.0/16","--cluster-dns","10.53.0.10","--tls-san","10.115.52.92","--audit-policy-file","/etc/rancher/rke2/config.yaml.d/92-harvester-kube-audit-policy.yaml","--nonroot-devices","true","--apiVersion","audit.k8s.io/v1","--kind","Policy","--omitStages","ResponseStarted","--omitStages","ResponseComplete","--rules","[{level
+    node.kubernetes.io/instance-type: bare-metal
+    kubernetes.io/hostname: harvester-node-1
+    node.kubernetes.io/internal-ip: 10.115.52.90
       Metadata} {verbs [create delete patch]} {omitStages [ResponseStarted ResponseComplete]}]"]'
-    rke2.io/node-config-hash: B7K5XHTPBGV6N3CTCEFP74JAZV5MJJODHOD3LWXR4PFYEL6Q6RKA====
-    rke2.io/node-env: '{"RKE2_DATA_DIR":"/var/lib/rancher/rke2"}'
     volumes.kubernetes.io/controller-managed-attach-detach: "true"
   creationTimestamp: "2026-01-16T02:52:48Z"
   finalizers:
@@ -1466,7 +1446,7 @@ metadata:
   - wrangler.cattle.io/node-remove-controller
   labels:
     beta.kubernetes.io/arch: amd64
-    beta.kubernetes.io/instance-type: rke2
+    beta.kubernetes.io/instance-type: bare-metal
     beta.kubernetes.io/os: linux
     cpu-feature.node.kubevirt.io/abm: "true"
     cpu-feature.node.kubevirt.io/aes: "true"
@@ -1854,10 +1834,10 @@ metadata:
     network.harvesterhci.io/vlanconfig: nc
     node-role.kubernetes.io/control-plane: "true"
     node-role.kubernetes.io/etcd: "true"
-    node.kubernetes.io/instance-type: rke2
+    node.kubernetes.io/instance-type: bare-metal
     plan.upgrade.cattle.io/sync-additional-ca: 2c27af4f7e139d7c15346edc0adb200edade07eef796ef2c41ef923b
     plan.upgrade.cattle.io/system-agent-upgrader: cab0e3bd454d91beec8ee44425add5c2cd494696a84c38239deb82f1
-    rke.cattle.io/machine: d4669472-188d-42e6-86cc-e4b2ddf76c88
+    cluster.x-k8s.io/machine-id: d4669472-188d-42e6-86cc-e4b2ddf76c88
   name: harvester-node-1
   resourceVersion: "5610701"
   uid: 9221811e-1f0e-4958-9aba-468444971fcb
@@ -1865,7 +1845,7 @@ spec:
   podCIDR: 10.52.1.0/24
   podCIDRs:
   - 10.52.1.0/24
-  providerID: rke2://harvester-node-1
+  providerID: k8s://harvester-node-1
   taints:
   - effect: NoSchedule
     key: node.kubernetes.io/unreachable
@@ -1968,7 +1948,7 @@ status:
     - docker.io/rancher/hardened-calico:v3.30.3-build20251015
     sizeBytes: 685524019
   - names:
-    - docker.io/rancher/hardened-kubernetes:v1.34.2-rke2r1-build20251112
+    - registry.k8s.io/kube-apiserver:v1.34.2
     sizeBytes: 640304363
   - names:
     - docker.io/rancher/mirrored-grafana-grafana:11.5.5
@@ -2012,7 +1992,7 @@ status:
     - docker.io/rancher/fleet:v0.14.0
     sizeBytes: 319225891
   - names:
-    - docker.io/rancher/rke2-runtime:v1.34.2-rke2r1
+    - registry.k8s.io/kube-proxy:v1.34.2
     sizeBytes: 306299220
   - names:
     - docker.io/rancher/prom-prometheus:v3.2.1
@@ -2104,7 +2084,7 @@ status:
     containerRuntimeVersion: containerd://2.1.5-k3s1
     kernelVersion: 6.4.0-36-default
     kubeProxyVersion: ""
-    kubeletVersion: v1.34.2+rke2r1
+    kubeletVersion: v1.34.2
     machineID: 17b6fa03558170feeadfa60a6969a7c8
     operatingSystem: linux
     osImage: Harvester v1.7

@@ -10,8 +10,6 @@ import (
 	"time"
 
 	fleet "github.com/rancher/fleet/pkg/apis/fleet.cattle.io/v1alpha1"
-	provisioningv1 "github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1"
-	rkev1 "github.com/rancher/rancher/pkg/apis/rke.cattle.io/v1"
 	mgmtv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
 	provisioningctrl "github.com/rancher/rancher/pkg/generated/controllers/provisioning.cattle.io/v1"
 	"github.com/rancher/wrangler/v3/pkg/condition"
@@ -42,8 +40,8 @@ import (
 
 var (
 	upgradeControllerLock sync.Mutex
-	rke2DrainNodes        = true
-	manifestsToSkip       = []string{"rke2-multus.yaml"}
+	drainNodes            = true
+	manifestsToSkip       = []string{}
 )
 
 const (
@@ -63,8 +61,8 @@ const (
 	preDrainAnnotation  = "harvesterhci.io/pre-hook"
 	postDrainAnnotation = "harvesterhci.io/post-hook"
 
-	rke2PreDrainAnnotation  = "rke.cattle.io/pre-drain"
-	rke2PostDrainAnnotation = "rke.cattle.io/post-drain"
+	planPreDrainAnnotation  = "harvesterhci.io/pre-drain"
+	planPostDrainAnnotation = "harvesterhci.io/post-drain"
 
 	upgradeComponentRepo = util.HarvesterUpgradeComponentRepo
 
@@ -76,8 +74,8 @@ const (
 	autoCleanupSystemGeneratedSnapshotAnnotation = "harvesterhci.io/" + autoCleanupSystemGeneratedSnapshotSetting
 
 	longhornSettingsRestoredAnnotation         = "harvesterhci.io/longhorn-settings-restored"
-	skipManifestsApplyPlanCompletedAnnotation  = "harvesterhci.io/apply-skip-rke2-manifests-plan-completed"
-	skipManifestsRemovePlanCompletedAnnotation = "harvesterhci.io/remove-skip-rke2-manifests-plan-completed"
+	skipManifestsApplyPlanCompletedAnnotation  = "harvesterhci.io/apply-skip-manifests-plan-completed"
+	skipManifestsRemovePlanCompletedAnnotation = "harvesterhci.io/remove-skip-manifests-plan-completed"
 	imageCleanupPlanCompletedAnnotation        = "harvesterhci.io/image-cleanup-plan-completed"
 	skipVersionCheckAnnotation                 = "harvesterhci.io/skip-version-check"
 	reenableDeschedulerAddonAnnotation         = "harvesterhci.io/reenable-descheduler-addon"
@@ -458,7 +456,7 @@ func (h *upgradeHandler) OnChanged(_ string, upgrade *harvesterv1.Upgrade) (*har
 			}
 			toUpdate = persisted.DeepCopy()
 
-			// go with RKE2 pre-drain/post-drain hooks
+			// go with pre-drain/post-drain hooks
 			logrus.Infof("Start upgrading Kubernetes runtime to %s", info.Release.Kubernetes)
 			if err := h.upgradeKubernetes(info.Release.Kubernetes); err != nil {
 				return upgrade, err
@@ -731,43 +729,10 @@ func (h *upgradeHandler) upgradeKubernetes(kubernetesVersion string) error {
 	toUpdate := cluster.DeepCopy()
 	toUpdate.Spec.KubernetesVersion = kubernetesVersion
 
-	if toUpdate.Spec.RKEConfig == nil {
-		toUpdate.Spec.RKEConfig = &provisioningv1.RKEConfig{}
-	}
-
-	toUpdate.Spec.RKEConfig.ProvisionGeneration++
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.ControlPlaneConcurrency = "1"
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.WorkerConcurrency = "1"
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.ControlPlaneDrainOptions.DeleteEmptyDirData = rke2DrainNodes
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.ControlPlaneDrainOptions.Enabled = rke2DrainNodes
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.ControlPlaneDrainOptions.Force = rke2DrainNodes
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.ControlPlaneDrainOptions.IgnoreDaemonSets = &rke2DrainNodes
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.WorkerDrainOptions.DeleteEmptyDirData = rke2DrainNodes
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.WorkerDrainOptions.Enabled = rke2DrainNodes
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.WorkerDrainOptions.Force = rke2DrainNodes
-	toUpdate.Spec.RKEConfig.UpgradeStrategy.WorkerDrainOptions.IgnoreDaemonSets = &rke2DrainNodes
-
-	updateDrainHooks(&toUpdate.Spec.RKEConfig.UpgradeStrategy.ControlPlaneDrainOptions.PreDrainHooks, preDrainAnnotation)
-	updateDrainHooks(&toUpdate.Spec.RKEConfig.UpgradeStrategy.ControlPlaneDrainOptions.PostDrainHooks, postDrainAnnotation)
-	updateDrainHooks(&toUpdate.Spec.RKEConfig.UpgradeStrategy.WorkerDrainOptions.PreDrainHooks, preDrainAnnotation)
-	updateDrainHooks(&toUpdate.Spec.RKEConfig.UpgradeStrategy.WorkerDrainOptions.PostDrainHooks, postDrainAnnotation)
-
 	if _, err := h.clusterClient.Update(toUpdate); err != nil {
 		return fmt.Errorf("failed to update fleet-local/local cluster to kubernetes version %s: %w", kubernetesVersion, err)
 	}
 	return nil
-}
-
-func updateDrainHooks(hooks *[]rkev1.DrainHook, annotation string) {
-	for _, hook := range *hooks {
-		if hook.Annotation == annotation {
-			return
-		}
-	}
-
-	*hooks = append(*hooks, rkev1.DrainHook{
-		Annotation: annotation,
-	})
 }
 
 func ensureSingleUpgrade(namespace string, upgradeCache ctlharvesterv1.UpgradeCache) (*harvesterv1.Upgrade, error) {

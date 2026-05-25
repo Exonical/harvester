@@ -15,7 +15,7 @@ const (
 var (
 	// clusterReposToPatch contains the name of clusterrepo objects which need to be patched with the hide annotation
 	// values are in the key format
-	clusterReposToPatch = []string{"harvester-charts", "rancher-charts", "rancher-rke2-charts", "rancher-stable"}
+	clusterReposToPatch = []string{"harvester-charts", "rancher-charts", "rancher-stable"}
 )
 
 func (h *mcmSettingsHandler) patchClusterRepos(key string, repo *catalogv1.ClusterRepo) (*catalogv1.ClusterRepo, error) {

@@ -13,7 +13,7 @@ import (
 func createSecrets(mgmt *config.Management) error {
 	secrets := mgmt.CoreFactory.Core().V1().Secret()
 
-	// Initializing the secret for Plan cattle-system/sync-additional-ca and cattle-system/sync-rke2-registries,
+	// Initializing the secret for Plan cattle-system/sync-additional-ca and cattle-system/sync-containerd-registries,
 	// so plans don't fail to mount secrets to jobs.
 	defaultSecrets := []corev1.Secret{
 		{

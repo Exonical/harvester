@@ -44,7 +44,7 @@ const (
 	upgradeCleanupLabel                       = "harvesterhci.io/upgradeCleanup"
 	skipWebhookAnnotation                     = "harvesterhci.io/skipWebhook"
 	skipSingleReplicaDetachedVol              = "harvesterhci.io/skipSingleReplicaDetachedVol"
-	rkeInternalIPAnnotation                   = "rke2.io/internal-ip"
+	nodeInternalIPAnnotation                  = "node.kubernetes.io/internal-ip"
 	managedChartNamespace                     = util.FleetLocalNamespaceName
 	defaultNewImageSize                uint64 = 13 * 1024 * 1024 * 1024 // 13GB, this value aggregates all tarball image sizes. It may change in the future.
 	defaultImageGCHighThresholdPercent        = 85.0                    // default value in kubelet config
@@ -413,9 +413,9 @@ func (v *upgradeValidator) checkNodes(upgrade *v1beta1.Upgrade) error {
 }
 
 func (v *upgradeValidator) checkDiskSpace(node *corev1.Node) error {
-	internalIP, ok := node.Annotations[rkeInternalIPAnnotation]
+	internalIP, ok := node.Annotations[nodeInternalIPAnnotation]
 	if !ok {
-		return werror.NewInternalError(fmt.Sprintf("node %s doesn't have %s annotation", node.Name, rkeInternalIPAnnotation))
+		return werror.NewInternalError(fmt.Sprintf("node %s doesn't have %s annotation", node.Name, nodeInternalIPAnnotation))
 	}
 
 	kubeletPort := node.Status.DaemonEndpoints.KubeletEndpoint.Port
@@ -651,7 +651,7 @@ func (v *upgradeValidator) Delete(_ *types.Request, oldObj runtime.Object) error
 	}
 
 	// If fleet-local/local cluster.provisioning.cattle.io is upgrading, deny removing upgrade CR request.
-	// If upgrade is removed, the cluster may have different RKE2 version nodes. It will make next upgrade fail.
+	// If upgrade is removed, the cluster may have different Kubernetes version nodes. It will make next upgrade fail.
 	if v1beta1.NodesUpgraded.IsUnknown(oldUpgrade) {
 		return werror.NewBadRequest("node upgrade is in progressing, please wait for it to be provisioned")
 	}
@@ -749,7 +749,7 @@ func (v *upgradeValidator) checkCerts(upgrade *v1beta1.Upgrade) error {
 	expirationDate := time.Now().AddDate(0, 0, minCertsExpirationInDay)
 	if earliestExpiringCert.NotAfter.Before(expirationDate) {
 		return werror.NewBadRequest(fmt.Sprintf(
-			"earliest expiring cert for default/kubernetes ClusterIP is %s, it will expire in %s days. Please rotate RKE2 certificates.", earliestExpiringCert.NotAfter, strconv.Itoa(minCertsExpirationInDay)))
+			"earliest expiring cert for default/kubernetes ClusterIP is %s, it will expire in %s days. Please rotate certificates.", earliestExpiringCert.NotAfter, strconv.Itoa(minCertsExpirationInDay)))
 	}
 	return nil
 }

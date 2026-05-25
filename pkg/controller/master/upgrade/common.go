@@ -22,8 +22,8 @@ const (
 	nodeComponent                = "node"
 	manifestComponent            = "manifest"
 	cleanupComponent             = "cleanup"
-	skipManifestsApplyComponent  = "apply-skip-rke2-manifests"
-	skipManifestsRemoveComponent = "remove-skip-rke2-manifests"
+	skipManifestsApplyComponent  = "apply-skip-manifests"
+	skipManifestsRemoveComponent = "remove-skip-manifests"
 
 	labelArch               = "kubernetes.io/arch"
 	labelCriticalAddonsOnly = "CriticalAddonsOnly"
@@ -41,7 +41,7 @@ const (
 set -e
 
 HOST_DIR="${HOST_DIR:-/host}"
-MANIFESTS_DIR="$HOST_DIR/var/lib/rancher/rke2/server/manifests"
+MANIFESTS_DIR="$HOST_DIR/etc/kubernetes/manifests"
 
 if [ -z "$MANIFESTS" ]; then
   echo "No manifests specified, nothing to do"
@@ -77,11 +77,11 @@ set -e
 
 HOST_DIR="${HOST_DIR:-/host}"
 
-export CONTAINER_RUNTIME_ENDPOINT=unix:///$HOST_DIR/run/k3s/containerd/containerd.sock
-export CONTAINERD_ADDRESS=$HOST_DIR/run/k3s/containerd/containerd.sock
+export CONTAINER_RUNTIME_ENDPOINT=unix:///$HOST_DIR/run/containerd/containerd.sock
+export CONTAINERD_ADDRESS=$HOST_DIR/run/containerd/containerd.sock
 
-CRICTL="$HOST_DIR/$(readlink $HOST_DIR/var/lib/rancher/rke2/bin)/crictl"
-if [ -z "$CRICTL" ];then
+CRICTL=$(command -v crictl 2>/dev/null || echo "$HOST_DIR/usr/local/bin/crictl")
+if [ -z "$CRICTL" ] || [ ! -x "$CRICTL" ]; then
 	echo "Fail to get host crictl binary."
 	exit 0
 fi

@@ -94,8 +94,8 @@ const (
 
 	BackupTargetSecretName              = "harvester-backup-target-secret"
 	InternalTLSSecretName               = "tls-rancher-internal"
-	Rke2IngressNginxAppName             = "rke2-ingress-nginx"
-	Rke2IngressNginxControllerName      = "rke2-ingress-nginx-controller"
+	GatewayClassName                    = "cilium"
+	GatewayName                         = "harvester-gateway"
 	CattleSystemNamespaceName           = "cattle-system"
 	CattleMonitoringSystemNamespace     = "cattle-monitoring-system"
 	LonghornSystemNamespaceName         = "longhorn-system"
@@ -187,7 +187,7 @@ const (
 	APIServerURLKey                          = "apiServerURL"
 	APIServerCAKey                           = "apiServerCA"
 
-	RKEControlPlaneRoleLabel = "rke.cattle.io/control-plane-role"
+	ControlPlaneRoleLabel = "node-role.kubernetes.io/control-plane"
 
 	LabelMaintainModeStrategy              = prefix + "/maintain-mode-strategy"
 	AnnotationMaintainModeStrategyNodeName = prefix + "/maintain-mode-strategy-node-name"
