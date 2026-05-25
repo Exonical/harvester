@@ -541,26 +541,7 @@ func (h *upgradeHandler) cleanup(upgrade *harvesterv1.Upgrade, cleanJobs bool) (
 		return nil, err
 	}
 
-	// remove rkeConfig in fleet-local/local cluster
-	cluster, err := h.clusterCache.Get(util.FleetLocalNamespaceName, util.LocalClusterName)
-	if err != nil {
-		return nil, err
-	}
-	clusterToUpdate := cluster.DeepCopy()
-	provisionGeneration := clusterToUpdate.Spec.RKEConfig.ProvisionGeneration
-	clusterToUpdate.Spec.RKEConfig = &provisioningv1.RKEConfig{
-		RKEClusterSpecCommon: rkev1.RKEClusterSpecCommon{
-			ProvisionGeneration: provisionGeneration,
-			Registries:          clusterToUpdate.Spec.RKEConfig.Registries,
-		},
-	}
-	logrus.Infof("Reset RKEConfig and set provisionGeneration to %d", provisionGeneration)
-	if !reflect.DeepEqual(clusterToUpdate, cluster) {
-		logrus.Info("Update cluster fleet-local/local")
-		if _, err := h.clusterClient.Update(clusterToUpdate); err != nil {
-			return nil, err
-		}
-	}
+	logrus.Info("Cleanup: skipping cluster config reset (vanilla Kubernetes)")
 
 	// SUC plans are in other namespaces, we need to delete them manually.
 	sets := labels.Set{
