@@ -23,7 +23,7 @@ import (
 	clientcmdlatest "k8s.io/client-go/tools/clientcmd/api/latest"
 
 	"github.com/harvester/harvester/pkg/config"
-	"github.com/harvester/harvester/pkg/controller/master/rancher"
+	"github.com/harvester/harvester/pkg/util"
 	harvesterServer "github.com/harvester/harvester/pkg/server/http"
 )
 
@@ -130,12 +130,12 @@ func (h *GenerateHandler) Do(ctx *harvesterServer.Ctx) (harvesterServer.Response
 }
 
 func (h *GenerateHandler) getServerURL() (string, error) {
-	vipCm, err := h.configMapCache.Get(h.namespace, rancher.VipConfigmapName)
+	vipCm, err := h.configMapCache.Get(h.namespace, util.VipConfigmapName)
 	if err != nil {
 		return "", err
 	}
 
-	vipConfig := rancher.VIPConfig{}
+	vipConfig := util.VIPConfig{}
 	if err := mapstructure.Decode(vipCm.Data, &vipConfig); err != nil {
 		return "", err
 	}

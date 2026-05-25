@@ -20,20 +20,17 @@ const (
 func Register(ctx context.Context, management *config.Management, options config.Options) error {
 	settings := management.HarvesterFactory.Harvesterhci().V1beta1().Setting()
 	secrets := management.CoreFactory.Core().V1().Secret()
-	clusters := management.ProvisioningFactory.Provisioning().V1().Cluster()
 	daemonsets := management.AppsFactory.Apps().V1().DaemonSet()
 	deployments := management.AppsFactory.Apps().V1().Deployment()
 	configmaps := management.CoreFactory.Core().V1().ConfigMap()
 	endpoints := management.CoreFactory.Core().V1().Endpoints()
 	lhs := management.LonghornFactory.Longhorn().V1beta2().Setting()
 	lhVolumes := management.LonghornFactory.Longhorn().V1beta2().Volume()
-	managedCharts := management.RancherManagementFactory.Management().V3().ManagedChart()
 	ingresses := management.NetworkingFactory.Networking().V1().Ingress()
 	helmChartConfigs := management.HelmFactory.Helm().V1().HelmChartConfig()
 	nodeConfigs := management.NodeConfigFactory.Node().V1beta1().NodeConfig()
 	node := management.CoreFactory.Core().V1().Node()
 	jobs := management.BatchFactory.Batch().V1().Job()
-	rancherSettings := management.RancherManagementFactory.Management().V3().Setting()
 	kubevirt := management.VirtFactory.Kubevirt().V1().KubeVirt()
 	namespaces := management.CoreFactory.Core().V1().Namespace()
 	controller := &Handler{
@@ -44,8 +41,6 @@ func Register(ctx context.Context, management *config.Management, options config
 		settingController:    settings,
 		secrets:              secrets,
 		secretCache:          secrets.Cache(),
-		clusters:             clusters,
-		clusterCache:         clusters.Cache(),
 		daemonsets:           daemonsets,
 		daemonsetCache:       daemonsets.Cache(),
 		deployments:          deployments,
@@ -58,8 +53,6 @@ func Register(ctx context.Context, management *config.Management, options config
 		configmaps:           configmaps,
 		configmapCache:       configmaps.Cache(),
 		endpointCache:        endpoints.Cache(),
-		managedCharts:        managedCharts,
-		managedChartCache:    managedCharts.Cache(),
 		helmChartConfigs:     helmChartConfigs,
 		helmChartConfigCache: helmChartConfigs.Cache(),
 		nodeConfigs:          nodeConfigs,
@@ -67,8 +60,6 @@ func Register(ctx context.Context, management *config.Management, options config
 		nodeClient:           node,
 		nodeCache:            node.Cache(),
 		jobClient:            jobs,
-		rancherSettings:      rancherSettings,
-		rancherSettingsCache: rancherSettings.Cache(),
 		kubeVirtConfig:       kubevirt,
 		kubeVirtConfigCache:  kubevirt.Cache(),
 		namespaces:           namespaces,

@@ -7,10 +7,6 @@ import (
 	helmv1 "github.com/k3s-io/helm-controller/pkg/generated/controllers/helm.cattle.io"
 	dashboardapi "github.com/kubernetes/dashboard/src/app/backend/auth/api"
 	"github.com/rancher/lasso/pkg/controller"
-	catalogv1 "github.com/rancher/rancher/pkg/generated/controllers/catalog.cattle.io"
-	rancherv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io"
-	provisioningv1 "github.com/rancher/rancher/pkg/generated/controllers/provisioning.cattle.io"
-	rkev1 "github.com/rancher/rancher/pkg/generated/controllers/rke.cattle.io"
 	"github.com/rancher/wrangler/v3/pkg/apply"
 	appsv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps"
 	batchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch"
@@ -56,9 +52,7 @@ type Options struct {
 	HTTPListenPort  int
 	HTTPSListenPort int
 
-	RancherEmbedded bool
-	RancherURL      string
-	HCIMode         bool
+	HCIMode bool
 }
 
 type Scaled struct {
@@ -80,8 +74,7 @@ type Scaled struct {
 	SnapshotFactory          *snapshotv1.Factory
 	StorageFactory           *storagev1.Factory
 	LonghornFactory          *longhornv1.Factory
-	RancherManagementFactory *rancherv3.Factory
-	CdiFactory               *ctlcdiv1.Factory
+	CdiFactory *ctlcdiv1.Factory
 	CdiUploadFactory         *ctlcdiuploadv1.Factory
 	starters                 []start.Starter
 
@@ -109,18 +102,14 @@ type Management struct {
 	StorageFactory            *storagev1.Factory
 	SnapshotFactory           *snapshotv1.Factory
 	LonghornFactory           *longhornv1.Factory
-	ProvisioningFactory       *provisioningv1.Factory
-	CatalogFactory            *catalogv1.Factory
-	RancherManagementFactory  *rancherv3.Factory
-	MonitoringFactory         *monitoringv1.Factory
+	MonitoringFactory *monitoringv1.Factory
 	HelmFactory               *helmv1.Factory
 	ControllerRevisionFactory *ctlharvesterappsv1.Factory
 	NetworkingFactory         *networking.Factory
 	UpgradeFactory            *upgrade.Factory
 	ClusterFactory            *cluster.Factory
 	NodeConfigFactory         *ctlnodeharvester.Factory
-	RKEFactory                *rkev1.Factory
-	CdiFactory                *ctlcdiv1.Factory
+	CdiFactory *ctlcdiv1.Factory
 	CdiUploadFactory          *ctlcdiuploadv1.Factory
 
 	ClientSet  kubernetes.Interface
@@ -238,13 +227,6 @@ func SetupScaled(ctx context.Context, restConfig *rest.Config, opts *generic.Fac
 	}
 	scaled.LonghornFactory = longhorn
 	scaled.starters = append(scaled.starters, longhorn)
-
-	rancher, err := rancherv3.NewFactoryFromConfigWithOptions(restConfig, opts)
-	if err != nil {
-		return nil, nil, err
-	}
-	scaled.RancherManagementFactory = rancher
-	scaled.starters = append(scaled.starters, rancher)
 
 	cdi, err := ctlcdiv1.NewFactoryFromConfigWithOptions(restConfig, opts)
 	if err != nil {
@@ -384,20 +366,6 @@ func setupManagement(ctx context.Context, restConfig *rest.Config, opts *generic
 	management.SnapshotFactory = snapshot
 	management.starters = append(management.starters, snapshot)
 
-	provisioning, err := provisioningv1.NewFactoryFromConfigWithOptions(restConfig, opts)
-	if err != nil {
-		return nil, err
-	}
-	management.ProvisioningFactory = provisioning
-	management.starters = append(management.starters, provisioning)
-
-	catalog, err := catalogv1.NewFactoryFromConfigWithOptions(restConfig, opts)
-	if err != nil {
-		return nil, err
-	}
-	management.CatalogFactory = catalog
-	management.starters = append(management.starters, catalog)
-
 	helm, err := helmv1.NewFactoryFromConfigWithOptions(restConfig, (*helmv1.FactoryOptions)(opts))
 	if err != nil {
 		return nil, err
@@ -411,13 +379,6 @@ func setupManagement(ctx context.Context, restConfig *rest.Config, opts *generic
 	}
 	management.NetworkingFactory = networking
 	management.starters = append(management.starters, networking)
-
-	rancher, err := rancherv3.NewFactoryFromConfigWithOptions(restConfig, opts)
-	if err != nil {
-		return nil, err
-	}
-	management.RancherManagementFactory = rancher
-	management.starters = append(management.starters, rancher)
 
 	cluster, err := cluster.NewFactoryFromConfigWithOptions(restConfig, opts)
 	if err != nil {
@@ -446,13 +407,6 @@ func setupManagement(ctx context.Context, restConfig *rest.Config, opts *generic
 	}
 	management.NodeConfigFactory = nodeconfig
 	management.starters = append(management.starters, nodeconfig)
-
-	rke, err := rkev1.NewFactoryFromConfigWithOptions(restConfig, opts)
-	if err != nil {
-		return nil, err
-	}
-	management.RKEFactory = rke
-	management.starters = append(management.starters, rke)
 
 	management.RestConfig = restConfig
 	management.ClientSet, err = kubernetes.NewForConfig(restConfig)

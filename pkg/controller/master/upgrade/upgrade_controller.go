@@ -9,9 +9,6 @@ import (
 	"sync"
 	"time"
 
-	fleet "github.com/rancher/fleet/pkg/apis/fleet.cattle.io/v1alpha1"
-	mgmtv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
-	provisioningctrl "github.com/rancher/rancher/pkg/generated/controllers/provisioning.cattle.io/v1"
 	"github.com/rancher/wrangler/v3/pkg/condition"
 	ctlappsv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps/v1"
 	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
@@ -103,9 +100,6 @@ type upgradeHandler struct {
 	addonClient       ctlharvesterv1.AddonClient
 	addonCache        ctlharvesterv1.AddonCache
 
-	managedChartCache  mgmtv3.ManagedChartCache
-	managedChartClient mgmtv3.ManagedChartClient
-
 	vmImageClient    ctlharvesterv1.VirtualMachineImageClient
 	vmImageCache     ctlharvesterv1.VirtualMachineImageCache
 	vmClient         kubevirtctrl.VirtualMachineClient
@@ -116,9 +110,6 @@ type upgradeHandler struct {
 	pvcClient        ctlcorev1.PersistentVolumeClaimClient
 	deploymentClient ctlappsv1.DeploymentClient
 	deploymentCache  ctlappsv1.DeploymentCache
-
-	clusterClient provisioningctrl.ClusterClient
-	clusterCache  provisioningctrl.ClusterCache
 
 	lhSettingClient ctllhv1.SettingClient
 	lhSettingCache  ctllhv1.SettingCache
@@ -628,34 +619,8 @@ func (h *upgradeHandler) cleanup(upgrade *harvesterv1.Upgrade, cleanJobs bool) (
 		return upgrade, err
 	}
 
-	return upgrade, h.resumeManagedCharts()
-}
-
-func (h *upgradeHandler) resumeManagedCharts() error {
-	managedCharts, err := h.managedChartCache.List(util.FleetLocalNamespaceName, labels.Everything())
-	if err != nil {
-		return nil
-	}
-
-	// those managedcharts might be paused by the upgrade script, resume them if they are not un-paused
-	targetManagedcharts := map[string]struct{}{util.HarvesterCRDManagedChart: {}, util.HarvesterManagedChart: {}, util.RancherLoggingCRDManagedChart: {}, util.RancherMonitoringCRDManagedChart: {}}
-
-	for _, managedChart := range managedCharts {
-		if !managedChart.Spec.Paused {
-			continue
-		}
-		if _, ok := targetManagedcharts[managedChart.Name]; !ok {
-			continue
-		}
-		mc := managedChart.DeepCopy()
-		mc.Spec.Paused = false
-		if _, err := h.managedChartClient.Update(mc); err != nil {
-			return fmt.Errorf("failed to resume managedchart %v %w", mc.Name, err)
-		}
-		logrus.Infof("managedchart %v is resumed", mc.Name)
-	}
-
-	return nil
+	logrus.Info("Upgrade cleanup complete (managed charts handled externally via Helm)")
+	return upgrade, nil
 }
 
 func (h *upgradeHandler) isSingleNodeCluster() (string, error) {
@@ -702,17 +667,7 @@ func (h *upgradeHandler) resetLatestUpgradeLabel(latestUpgradeName string) error
 }
 
 func (h *upgradeHandler) upgradeKubernetes(kubernetesVersion string) error {
-	cluster, err := h.clusterCache.Get("fleet-local", "local")
-	if err != nil {
-		return fmt.Errorf("failed to get fleet-local/local cluster from cache: %w", err)
-	}
-
-	toUpdate := cluster.DeepCopy()
-	toUpdate.Spec.KubernetesVersion = kubernetesVersion
-
-	if _, err := h.clusterClient.Update(toUpdate); err != nil {
-		return fmt.Errorf("failed to update fleet-local/local cluster to kubernetes version %s: %w", kubernetesVersion, err)
-	}
+	logrus.Infof("Kubernetes upgrade to %s will be handled by the node upgrade plans", kubernetesVersion)
 	return nil
 }
 
@@ -987,72 +942,8 @@ func (h *upgradeHandler) enableKubevirtWorkloadLiveMigrate(upgrade *harvesterv1.
 }
 
 func (h *upgradeHandler) removeKubevirtComparePatches() error {
-	logrus.Info("Removing kubevirt comparePatches from harvester managedchart")
-	managedChart, err := h.managedChartCache.Get(util.FleetLocalNamespaceName, util.HarvesterManagedChart)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			logrus.Info("harvester managedchart not found, skip removing kubevirt comparePatches")
-			return nil
-		}
-		return fmt.Errorf("failed to get harvester managedchart: %w", err)
-	}
-
-	if managedChart.Spec.Diff == nil || len(managedChart.Spec.Diff.ComparePatches) == 0 {
-		logrus.Info("No comparePatches found in harvester managedchart, skip removing")
-		return nil
-	}
-
-	const jsonPointer = "/spec/workloadUpdateStrategy/workloadUpdateMethods"
-	updatedComparePatches, removed := filterKubevirtComparePatches(managedChart.Spec.Diff.ComparePatches, jsonPointer)
-
-	// Only update if we actually removed something
-	if !removed {
-		logrus.Info("kubevirt comparePatches entry with workloadUpdateMethods JsonPointer not found, nothing to remove")
-		return nil
-	}
-
-	mcToUpdate := managedChart.DeepCopy()
-	mcToUpdate.Spec.Diff.ComparePatches = updatedComparePatches
-
-	if _, err := h.managedChartClient.Update(mcToUpdate); err != nil {
-		return fmt.Errorf("failed to update harvester managedchart: %w", err)
-	}
-
-	logrus.Info("Successfully removed kubevirt comparePatches from harvester managedchart")
+	logrus.Info("Skipping kubevirt comparePatches removal (managed charts not used in vanilla Kubernetes)")
 	return nil
-}
-
-// filterKubevirtComparePatches filters comparePatches to remove the specific jsonPointer
-// "/spec/workloadUpdateStrategy/workloadUpdateMethods" from kubevirt patches.
-// It returns the filtered slice and a boolean indicating if anything was removed.
-func filterKubevirtComparePatches(comparePatches []fleet.ComparePatch, targetJsonPointer string) ([]fleet.ComparePatch, bool) {
-	var updatedComparePatches []fleet.ComparePatch
-	removed := false
-
-	for _, patch := range comparePatches {
-		if patch.APIVersion == "kubevirt.io/v1" && patch.Kind == "KubeVirt" && patch.Name == "kubevirt" {
-			var updatedJsonPointers []string
-			for _, jsonPointer := range patch.JsonPointers {
-				if jsonPointer == targetJsonPointer {
-					removed = true
-				} else {
-					updatedJsonPointers = append(updatedJsonPointers, jsonPointer)
-				}
-			}
-
-			// Only keep the patch if it has remaining jsonPointers
-			if len(updatedJsonPointers) > 0 {
-				patchCopy := patch
-				patchCopy.JsonPointers = updatedJsonPointers
-				updatedComparePatches = append(updatedComparePatches, patchCopy)
-			}
-			// Skip adding the original patch - we either added the modified one or nothing
-			continue
-		}
-		updatedComparePatches = append(updatedComparePatches, patch)
-	}
-
-	return updatedComparePatches, removed
 }
 
 func (h *upgradeHandler) reenableAddons(upgrade *harvesterv1.Upgrade) (*harvesterv1.Upgrade, error) {

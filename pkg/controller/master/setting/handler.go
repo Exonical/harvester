@@ -10,8 +10,6 @@ import (
 
 	ctlnodev1 "github.com/harvester/node-manager/pkg/generated/controllers/node.harvesterhci.io/v1beta1"
 	ctlhelmv1 "github.com/k3s-io/helm-controller/pkg/generated/controllers/helm.cattle.io/v1"
-	ctlmgmtv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
-	provisioningv1 "github.com/rancher/rancher/pkg/generated/controllers/provisioning.cattle.io/v1"
 	"github.com/rancher/wrangler/v3/pkg/apply"
 	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps/v1"
 	ctlbatchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
@@ -55,8 +53,6 @@ type Handler struct {
 	namespace            string
 	httpClient           http.Client
 	apply                apply.Apply
-	clusterCache         provisioningv1.ClusterCache
-	clusters             provisioningv1.ClusterClient
 	settings             v1beta1.SettingClient
 	settingCache         v1beta1.SettingCache
 	settingController    v1beta1.SettingController
@@ -74,8 +70,6 @@ type Handler struct {
 	configmaps           ctlcorev1.ConfigMapClient
 	configmapCache       ctlcorev1.ConfigMapCache
 	endpointCache        ctlcorev1.EndpointsCache
-	managedCharts        ctlmgmtv3.ManagedChartClient
-	managedChartCache    ctlmgmtv3.ManagedChartCache
 	helmChartConfigs     ctlhelmv1.HelmChartConfigClient
 	helmChartConfigCache ctlhelmv1.HelmChartConfigCache
 	nodeClient           ctlcorev1.NodeController
@@ -83,8 +77,6 @@ type Handler struct {
 	nodeConfigs          ctlnodev1.NodeConfigClient
 	nodeConfigsCache     ctlnodev1.NodeConfigCache
 	jobClient            ctlbatchv1.JobClient
-	rancherSettings      ctlmgmtv3.SettingClient
-	rancherSettingsCache ctlmgmtv3.SettingCache
 	kubeVirtConfig       kubevirtv1.KubeVirtClient
 	kubeVirtConfigCache  kubevirtv1.KubeVirtCache
 	namespaces           ctlcorev1.NamespaceClient

@@ -99,7 +99,6 @@ func Register(ctx context.Context, management *config.Management, options config
 	versions := management.HarvesterFactory.Harvesterhci().V1beta1().Version()
 	settings := management.HarvesterFactory.Harvesterhci().V1beta1().Setting()
 	plans := management.UpgradeFactory.Upgrade().V1().Plan()
-	managedcharts := management.RancherManagementFactory.Management().V3().ManagedChart()
 	nodes := management.CoreFactory.Core().V1().Node()
 	jobs := management.BatchFactory.Batch().V1().Job()
 	deployments := management.AppsFactory.Apps().V1().Deployment()
@@ -108,7 +107,6 @@ func Register(ctx context.Context, management *config.Management, options config
 	kubevirts := management.VirtFactory.Kubevirt().V1().KubeVirt()
 	services := management.CoreFactory.Core().V1().Service()
 	namespaces := management.CoreFactory.Core().V1().Namespace()
-	clusters := management.ProvisioningFactory.Provisioning().V1().Cluster()
 	machines := management.ClusterFactory.Cluster().V1beta1().Machine()
 	secrets := management.CoreFactory.Core().V1().Secret()
 	pvcs := management.CoreFactory.Core().V1().PersistentVolumeClaim()
@@ -142,8 +140,6 @@ func Register(ctx context.Context, management *config.Management, options config
 		planCache:          plans.Cache(),
 		addonClient:        addons,
 		addonCache:         addons.Cache(),
-		managedChartClient: managedcharts,
-		managedChartCache:  managedcharts.Cache(),
 		vmImageClient:      vmImages,
 		vmImageCache:       vmImages.Cache(),
 		vmClient:           vms,
@@ -152,8 +148,6 @@ func Register(ctx context.Context, management *config.Management, options config
 		kubevirtCache:      kubevirts.Cache(),
 		serviceClient:      services,
 		pvcClient:          pvcs,
-		clusterClient:      clusters,
-		clusterCache:       clusters.Cache(),
 		lhSettingClient:    lhSettings,
 		lhSettingCache:     lhSettings.Cache(),
 		vmRestClient:       virtSubresourceClient,
