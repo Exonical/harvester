@@ -55,7 +55,7 @@ func addAuthenticatedRoles(apply apply.Apply) error {
 					},
 					{
 						Verbs:         []string{"get", "watch"},
-						APIGroups:     []string{"management.cattle.io"},
+						APIGroups:     []string{"harvesterhci.io"},
 						Resources:     []string{"settings"},
 						ResourceNames: []string{systemNamespaces},
 					},

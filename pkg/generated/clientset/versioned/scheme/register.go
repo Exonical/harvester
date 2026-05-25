@@ -28,9 +28,6 @@ import (
 	snapshotv1 "github.com/kubernetes-csi/external-snapshotter/client/v4/apis/volumesnapshot/v1"
 	longhornv1beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	catalogv1 "github.com/rancher/rancher/pkg/apis/catalog.cattle.io/v1"
-	managementv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
-	provisioningv1 "github.com/rancher/rancher/pkg/apis/provisioning.cattle.io/v1"
 	upgradev1 "github.com/rancher/system-upgrade-controller/pkg/apis/upgrade.cattle.io/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -55,7 +52,6 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 	corev1.AddToScheme,
 	appsv1.AddToScheme,
 	batchv1.AddToScheme,
-	catalogv1.AddToScheme,
 	cdiv1beta1.AddToScheme,
 	clusterv1beta1.AddToScheme,
 	harvesterhciv1beta1.AddToScheme,
@@ -64,11 +60,9 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 	kubevirtv1.AddToScheme,
 	loggingv1beta1.AddToScheme,
 	longhornv1beta2.AddToScheme,
-	managementv3.AddToScheme,
 	monitoringv1.AddToScheme,
 	networkv1beta1.AddToScheme,
 	networkingv1.AddToScheme,
-	provisioningv1.AddToScheme,
 	snapshotv1.AddToScheme,
 	storagev1.AddToScheme,
 	upgradev1.AddToScheme,

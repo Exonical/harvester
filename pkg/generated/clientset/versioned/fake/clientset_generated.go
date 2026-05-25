@@ -24,8 +24,6 @@ import (
 	fakeappsv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/apps/v1/fake"
 	batchv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/batch/v1"
 	fakebatchv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/batch/v1/fake"
-	catalogv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/catalog.cattle.io/v1"
-	fakecatalogv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/catalog.cattle.io/v1/fake"
 	cdiv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/cdi.kubevirt.io/v1beta1"
 	fakecdiv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/cdi.kubevirt.io/v1beta1/fake"
 	clusterv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/cluster.x-k8s.io/v1beta1"
@@ -42,16 +40,12 @@ import (
 	fakeloggingv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/logging.banzaicloud.io/v1beta1/fake"
 	longhornv1beta2 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/longhorn.io/v1beta2"
 	fakelonghornv1beta2 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/longhorn.io/v1beta2/fake"
-	managementv3 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/management.cattle.io/v3"
-	fakemanagementv3 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/management.cattle.io/v3/fake"
 	monitoringv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/monitoring.coreos.com/v1"
 	fakemonitoringv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/monitoring.coreos.com/v1/fake"
 	networkv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/network.harvesterhci.io/v1beta1"
 	fakenetworkv1beta1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/network.harvesterhci.io/v1beta1/fake"
 	networkingv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/networking.k8s.io/v1"
 	fakenetworkingv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/networking.k8s.io/v1/fake"
-	provisioningv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/provisioning.cattle.io/v1"
-	fakeprovisioningv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/provisioning.cattle.io/v1/fake"
 	snapshotv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/snapshot.storage.k8s.io/v1"
 	fakesnapshotv1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/snapshot.storage.k8s.io/v1/fake"
 	storagev1 "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/storage.k8s.io/v1"
@@ -145,11 +139,6 @@ func (c *Clientset) BatchV1() batchv1.BatchV1Interface {
 	return &fakebatchv1.FakeBatchV1{Fake: &c.Fake}
 }
 
-// CatalogV1 retrieves the CatalogV1Client
-func (c *Clientset) CatalogV1() catalogv1.CatalogV1Interface {
-	return &fakecatalogv1.FakeCatalogV1{Fake: &c.Fake}
-}
-
 // CdiV1beta1 retrieves the CdiV1beta1Client
 func (c *Clientset) CdiV1beta1() cdiv1beta1.CdiV1beta1Interface {
 	return &fakecdiv1beta1.FakeCdiV1beta1{Fake: &c.Fake}
@@ -190,11 +179,6 @@ func (c *Clientset) LonghornV1beta2() longhornv1beta2.LonghornV1beta2Interface {
 	return &fakelonghornv1beta2.FakeLonghornV1beta2{Fake: &c.Fake}
 }
 
-// ManagementV3 retrieves the ManagementV3Client
-func (c *Clientset) ManagementV3() managementv3.ManagementV3Interface {
-	return &fakemanagementv3.FakeManagementV3{Fake: &c.Fake}
-}
-
 // MonitoringV1 retrieves the MonitoringV1Client
 func (c *Clientset) MonitoringV1() monitoringv1.MonitoringV1Interface {
 	return &fakemonitoringv1.FakeMonitoringV1{Fake: &c.Fake}
@@ -208,11 +192,6 @@ func (c *Clientset) NetworkV1beta1() networkv1beta1.NetworkV1beta1Interface {
 // NetworkingV1 retrieves the NetworkingV1Client
 func (c *Clientset) NetworkingV1() networkingv1.NetworkingV1Interface {
 	return &fakenetworkingv1.FakeNetworkingV1{Fake: &c.Fake}
-}
-
-// ProvisioningV1 retrieves the ProvisioningV1Client
-func (c *Clientset) ProvisioningV1() provisioningv1.ProvisioningV1Interface {
-	return &fakeprovisioningv1.FakeProvisioningV1{Fake: &c.Fake}
 }
 
 // SnapshotV1 retrieves the SnapshotV1Client

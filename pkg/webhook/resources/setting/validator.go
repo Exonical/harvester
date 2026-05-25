@@ -30,7 +30,6 @@ import (
 	lhv1beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	lhtypes "github.com/longhorn/longhorn-manager/types"
 	"github.com/rancher/lasso/pkg/log"
-	mgmtv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io/v3"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/rancher/wrangler/v3/pkg/slice"
 	"github.com/sirupsen/logrus"
@@ -149,7 +148,6 @@ func NewValidator(
 	vmCache ctlkubevirtv1.VirtualMachineCache,
 	vmiCache ctlkubevirtv1.VirtualMachineInstanceCache,
 	vmimCache ctlkubevirtv1.VirtualMachineInstanceMigrationCache,
-	featureCache mgmtv3.FeatureCache,
 	lhVolumeCache ctllhv1b2.VolumeCache,
 	pvcCache ctlcorev1.PersistentVolumeClaimCache,
 	cnCache ctlnetworkv1.ClusterNetworkCache,
@@ -167,7 +165,6 @@ func NewValidator(
 		vmCache:            vmCache,
 		vmiCache:           vmiCache,
 		vmimCache:          vmimCache,
-		featureCache:       featureCache,
 		lhVolumeCache:      lhVolumeCache,
 		pvcCache:           pvcCache,
 		cnCache:            cnCache,
@@ -227,7 +224,6 @@ type settingValidator struct {
 	vmCache            ctlkubevirtv1.VirtualMachineCache
 	vmiCache           ctlkubevirtv1.VirtualMachineInstanceCache
 	vmimCache          ctlkubevirtv1.VirtualMachineInstanceMigrationCache
-	featureCache       mgmtv3.FeatureCache
 	lhVolumeCache      ctllhv1b2.VolumeCache
 	pvcCache           ctlcorev1.PersistentVolumeClaimCache
 	cnCache            ctlnetworkv1.ClusterNetworkCache

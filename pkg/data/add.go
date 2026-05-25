@@ -6,6 +6,10 @@ import (
 	"github.com/harvester/harvester/pkg/config"
 )
 
+const (
+	AggregationSecretName = "harvester-aggregation"
+)
+
 // Init adds built-in resources
 func Init(ctx context.Context, mgmtCtx *config.Management, options config.Options) error {
 	if err := createCRDs(ctx, mgmtCtx.RestConfig); err != nil {
@@ -16,9 +20,6 @@ func Init(ctx context.Context, mgmtCtx *config.Management, options config.Option
 		return err
 	}
 	if err := addFleetDefaultNamespace(mgmtCtx.Apply); err != nil {
-		return err
-	}
-	if err := addAPIService(mgmtCtx.Apply, options.Namespace); err != nil {
 		return err
 	}
 	if err := addAuthenticatedRoles(mgmtCtx.Apply); err != nil {

@@ -13,10 +13,6 @@ import (
 	"github.com/rancher/lasso/pkg/cache"
 	"github.com/rancher/lasso/pkg/client"
 	"github.com/rancher/lasso/pkg/controller"
-	catalogv1 "github.com/rancher/rancher/pkg/apis/catalog.cattle.io/v1"
-	managementv3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
-	ctlcatalogv1 "github.com/rancher/rancher/pkg/generated/controllers/catalog.cattle.io"
-	ctlrancherv3 "github.com/rancher/rancher/pkg/generated/controllers/management.cattle.io"
 	ctlbatchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core"
 	"github.com/rancher/wrangler/v3/pkg/generic"
@@ -35,7 +31,6 @@ import (
 	harvesterv1 "github.com/harvester/harvester/pkg/apis/harvesterhci.io/v1beta1"
 	"github.com/harvester/harvester/pkg/config"
 	"github.com/harvester/harvester/pkg/controller/master/addon"
-	"github.com/harvester/harvester/pkg/controller/master/mcmsettings"
 	ctlharvesterv1 "github.com/harvester/harvester/pkg/generated/controllers/harvesterhci.io"
 	"github.com/harvester/harvester/tests/framework/cluster"
 	"github.com/harvester/harvester/tests/framework/dsl"
@@ -51,7 +46,7 @@ var (
 	cfg              *rest.Config
 	scaled           *config.Scaled
 	scheme           = runtime.NewScheme()
-	crdList          = []string{"./manifest/helm-crd.yaml", "./manifest/app-crd.yaml", "./manifest/ranchersettings-crd.yaml", "./manifest/clusterrepos-crd.yaml", "../../../deploy/charts/harvester-crd/templates/harvesterhci.io_addons.yaml"}
+	crdList          = []string{"./manifest/helm-crd.yaml", "../../../deploy/charts/harvester-crd/templates/harvesterhci.io_addons.yaml"}
 )
 
 func TestAPI(t *testing.T) {
@@ -96,16 +91,7 @@ var _ = ginkgo.BeforeSuite(func() {
 	err = batchv1.AddToScheme(scheme)
 	dsl.MustNotError(err)
 
-	err = catalogv1.AddToScheme(scheme)
-	dsl.MustNotError(err)
-
-	err = managementv3.AddToScheme(scheme)
-	dsl.MustNotError(err)
-
 	err = corev1.AddToScheme(scheme)
-	dsl.MustNotError(err)
-
-	err = catalogv1.AddToScheme(scheme)
 	dsl.MustNotError(err)
 
 	clientFactory, err := client.NewSharedClientFactory(kubeConfig, nil)
@@ -194,23 +180,11 @@ func startControllers(ctx context.Context, restConfig *rest.Config, opts *ctlhar
 		return err
 	}
 
-	catalog, err := ctlcatalogv1.NewFactoryFromConfigWithOptions(restConfig, opts)
-	if err != nil {
-		return err
-	}
-
-	rancher, err := ctlrancherv3.NewFactoryFromConfigWithOptions(restConfig, opts)
-	if err != nil {
-		return err
-	}
-
 	m := &config.Management{
 		HarvesterFactory:         harvesterFactory,
 		CoreFactory:              core,
 		BatchFactory:             batch,
 		HelmFactory:              helm,
-		CatalogFactory:           catalog,
-		RancherManagementFactory: rancher,
 	}
 
 	_ = batch.ControllerFactory().SharedCacheFactory().WaitForCacheSync(ctx)
@@ -219,16 +193,12 @@ func startControllers(ctx context.Context, restConfig *rest.Config, opts *ctlhar
 		return err
 	}
 
-	if err = mcmsettings.Register(testCtx, m, config.Options{}); err != nil {
-		return err
-	}
-
 	if err = fake.RegisterFakeControllers(testCtx, m, config.Options{}); err != nil {
 		return err
 	}
 
 	logrus.Infof("sync status of batch informer: %v", batch.Batch().V1().Job().Informer().HasSynced())
-	if err = start.All(ctx, 10, harvesterFactory, core, batch, helm, catalog, rancher); err != nil {
+	if err = start.All(ctx, 10, harvesterFactory, core, batch, helm); err != nil {
 		return err
 	}
 

@@ -5,12 +5,8 @@ import (
 
 	"github.com/harvester/go-common/common"
 	"github.com/harvester/harvester/pkg/generated/clientset/versioned/fake"
-	"github.com/harvester/harvester/pkg/util"
 	"github.com/harvester/harvester/pkg/util/fakeclients"
 	longhornTypes "github.com/longhorn/longhorn-manager/types"
-	rkev1 "github.com/rancher/rancher/pkg/apis/rke.cattle.io/v1"
-	rkev1controller "github.com/rancher/rancher/pkg/generated/controllers/rke.cattle.io/v1"
-	"github.com/rancher/wrangler/v3/pkg/genericcondition"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,53 +29,47 @@ func TestClusterReady(t *testing.T) {
 
 	tests := []struct {
 		name                string
-		rkeControlPlane     *rkev1.RKEControlPlane
+		nodes               []*corev1.Node
 		pods                []*corev1.Pod
 		expectedReady       bool
 		expectedMsgContains string
 	}{
 		{
-			name:                "RKE control plane not found",
-			rkeControlPlane:     nil,
+			name:                "No nodes found",
+			nodes:               nil,
 			pods:                nil,
 			expectedReady:       false,
-			expectedMsgContains: "rkeControlPlane not found",
+			expectedMsgContains: "no nodes found",
 		},
 		{
-			name: "RKE control plane not ready",
-			rkeControlPlane: buildMockRKEControlPlane(
-				util.LocalClusterName,
-				util.FleetLocalNamespaceName,
-				[]genericcondition.GenericCondition{
-					{Type: "Ready", Status: corev1.ConditionFalse},
-				},
-			),
+			name: "Node not ready",
+			nodes: []*corev1.Node{
+				buildMockNode("node-1", []corev1.NodeCondition{
+					{Type: corev1.NodeReady, Status: corev1.ConditionFalse},
+				}),
+			},
 			pods:                nil,
 			expectedReady:       false,
-			expectedMsgContains: "rkeControlPlane is not ready",
+			expectedMsgContains: "not all nodes are ready",
 		},
 		{
 			name: "No longhorn manager pods",
-			rkeControlPlane: buildMockRKEControlPlane(
-				util.LocalClusterName,
-				util.FleetLocalNamespaceName,
-				[]genericcondition.GenericCondition{
-					{Type: "Ready", Status: corev1.ConditionTrue},
-				},
-			),
+			nodes: []*corev1.Node{
+				buildMockNode("node-1", []corev1.NodeCondition{
+					{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+				}),
+			},
 			pods:                []*corev1.Pod{},
 			expectedReady:       false,
 			expectedMsgContains: "longhorn-manager pods not ready",
 		},
 		{
 			name: "Longhorn manager pod not ready",
-			rkeControlPlane: buildMockRKEControlPlane(
-				util.LocalClusterName,
-				util.FleetLocalNamespaceName,
-				[]genericcondition.GenericCondition{
-					{Type: "Ready", Status: corev1.ConditionTrue},
-				},
-			),
+			nodes: []*corev1.Node{
+				buildMockNode("node-1", []corev1.NodeCondition{
+					{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+				}),
+			},
 			pods: []*corev1.Pod{
 				buildMockPod(
 					"longhorn-manager-1",
@@ -94,13 +84,11 @@ func TestClusterReady(t *testing.T) {
 		},
 		{
 			name: "Virt controller pods not ready",
-			rkeControlPlane: buildMockRKEControlPlane(
-				util.LocalClusterName,
-				util.FleetLocalNamespaceName,
-				[]genericcondition.GenericCondition{
-					{Type: "Ready", Status: corev1.ConditionTrue},
-				},
-			),
+			nodes: []*corev1.Node{
+				buildMockNode("node-1", []corev1.NodeCondition{
+					{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+				}),
+			},
 			pods: []*corev1.Pod{
 				buildMockPod(
 					"longhorn-manager-1",
@@ -122,13 +110,11 @@ func TestClusterReady(t *testing.T) {
 		},
 		{
 			name: "All components ready - single pods",
-			rkeControlPlane: buildMockRKEControlPlane(
-				util.LocalClusterName,
-				util.FleetLocalNamespaceName,
-				[]genericcondition.GenericCondition{
-					{Type: "Ready", Status: corev1.ConditionTrue},
-				},
-			),
+			nodes: []*corev1.Node{
+				buildMockNode("node-1", []corev1.NodeCondition{
+					{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+				}),
+			},
 			pods: []*corev1.Pod{
 				buildMockPod(
 					"longhorn-manager-1",
@@ -150,13 +136,11 @@ func TestClusterReady(t *testing.T) {
 		},
 		{
 			name: "All components ready - multiple pods with some not ready",
-			rkeControlPlane: buildMockRKEControlPlane(
-				util.LocalClusterName,
-				util.FleetLocalNamespaceName,
-				[]genericcondition.GenericCondition{
-					{Type: "Ready", Status: corev1.ConditionTrue},
-				},
-			),
+			nodes: []*corev1.Node{
+				buildMockNode("node-1", []corev1.NodeCondition{
+					{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+				}),
+			},
 			pods: []*corev1.Pod{
 				buildMockPod(
 					"longhorn-manager-1",
@@ -191,27 +175,24 @@ func TestClusterReady(t *testing.T) {
 			expectedMsgContains: "",
 		},
 		{
-			name: "RKE ready condition missing",
-			rkeControlPlane: buildMockRKEControlPlane(
-				util.LocalClusterName,
-				util.FleetLocalNamespaceName,
-				[]genericcondition.GenericCondition{},
-			),
+			name: "Node ready condition missing",
+			nodes: []*corev1.Node{
+				buildMockNode("node-1", []corev1.NodeCondition{}),
+			},
 			pods:                nil,
 			expectedReady:       false,
-			expectedMsgContains: "rkeControlPlane is not ready",
+			expectedMsgContains: "not all nodes are ready",
 		},
 		{
-			name: "Multiple RKE conditions with ready true",
-			rkeControlPlane: buildMockRKEControlPlane(
-				util.LocalClusterName,
-				util.FleetLocalNamespaceName,
-				[]genericcondition.GenericCondition{
-					{Type: "Provisioned", Status: corev1.ConditionTrue},
-					{Type: "Ready", Status: corev1.ConditionTrue},
-					{Type: "Updated", Status: corev1.ConditionFalse},
-				},
-			),
+			name: "Multiple nodes all ready",
+			nodes: []*corev1.Node{
+				buildMockNode("node-1", []corev1.NodeCondition{
+					{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+				}),
+				buildMockNode("node-2", []corev1.NodeCondition{
+					{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+				}),
+			},
 			pods: []*corev1.Pod{
 				buildMockPod(
 					"longhorn-manager-1",
@@ -233,13 +214,11 @@ func TestClusterReady(t *testing.T) {
 		},
 		{
 			name: "Pod running but missing PodReady condition",
-			rkeControlPlane: buildMockRKEControlPlane(
-				util.LocalClusterName,
-				util.FleetLocalNamespaceName,
-				[]genericcondition.GenericCondition{
-					{Type: "Ready", Status: corev1.ConditionTrue},
-				},
-			),
+			nodes: []*corev1.Node{
+				buildMockNode("node-1", []corev1.NodeCondition{
+					{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
+				}),
+			},
 			pods: []*corev1.Pod{
 				buildMockPod(
 					"longhorn-manager-1",
@@ -268,25 +247,21 @@ func TestClusterReady(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			clientset := fake.NewSimpleClientset()
 
+			for _, node := range tt.nodes {
+				err := clientset.Tracker().Add(node)
+				assert.Nil(t, err, "Mock node should add into fake controller tracker")
+			}
 			for _, pod := range tt.pods {
 				err := clientset.Tracker().Add(pod)
 				assert.Nil(t, err, "Mock pod should add into fake controller tracker")
 			}
 
 			podCache := fakeclients.PodCache(clientset.CoreV1().Pods)
-			rkeCache := fakeclients.RKEControlPlaneCache(func(namespace string) rkev1controller.RKEControlPlaneClient {
-				rkeMap := make(map[string]*rkev1.RKEControlPlane)
-				if tt.rkeControlPlane != nil {
-					rkeMap[tt.rkeControlPlane.Namespace+"/"+tt.rkeControlPlane.Name] = tt.rkeControlPlane
-				}
-				return &fakeclients.MockRKEControlPlaneClient{
-					RKEControlPlanes: rkeMap,
-				}
-			})
+			nodeCache := fakeclients.NodeCache(clientset.CoreV1().Nodes)
 
 			handler := &ReadyzHandler{
-				podCache: podCache,
-				rkeCache: rkeCache,
+				podCache:  podCache,
+				nodeCache: nodeCache,
 			}
 			ready, msg := handler.clusterReady()
 			assert.Equal(t, tt.expectedReady, ready, "Ready status should match expected")
@@ -313,13 +288,12 @@ func buildMockPod(name, namespace string, labels map[string]string, phase corev1
 	}
 }
 
-func buildMockRKEControlPlane(name string, namespace string, conditions []genericcondition.GenericCondition) *rkev1.RKEControlPlane {
-	return &rkev1.RKEControlPlane{
+func buildMockNode(name string, conditions []corev1.NodeCondition) *corev1.Node {
+	return &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+			Name: name,
 		},
-		Status: rkev1.RKEControlPlaneStatus{
+		Status: corev1.NodeStatus{
 			Conditions: conditions,
 		},
 	}
