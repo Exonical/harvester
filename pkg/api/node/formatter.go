@@ -15,7 +15,7 @@ import (
 	ctlbatchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
-	"github.com/rancher/wrangler/v3/pkg/slice"
+	"slices"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -378,7 +378,7 @@ func (h ActionHandler) powerActionPossible(rw http.ResponseWriter, node string) 
 }
 
 func (h ActionHandler) powerAction(node *corev1.Node, operation string) error {
-	if !slice.ContainsString(possiblePowerActions, operation) {
+	if !slices.Contains(possiblePowerActions, operation) {
 		return fmt.Errorf("operation %s is not a valid power opreation. valid values need to be in %v", operation, possiblePowerActions)
 	}
 

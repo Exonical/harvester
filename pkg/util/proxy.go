@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/harvester/go-common/ds"
-	"github.com/rancher/wrangler/v3/pkg/slice"
+	"slices"
 )
 
 var builtInNoProxy = []string{
@@ -30,7 +30,7 @@ func AddBuiltInNoProxy(noProxy string) string {
 	noProxySlice := ds.SliceMapFunc(strings.Split(noProxy, ","),
 		func(v string, _ int) string { return strings.TrimSpace(v) })
 	for _, item := range builtInNoProxy {
-		if !slice.ContainsString(noProxySlice, item) {
+		if !slices.Contains(noProxySlice, item) {
 			noProxySlice = append(noProxySlice, item)
 		}
 	}

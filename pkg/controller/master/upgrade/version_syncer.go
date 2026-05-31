@@ -15,7 +15,7 @@ import (
 
 	gversion "github.com/mcuadros/go-version"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	"github.com/rancher/wrangler/v3/pkg/slice"
+	"slices"
 	"github.com/sirupsen/logrus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -255,7 +255,7 @@ func canUpgrade(currentVersion string, newVersion *harvesterv1.Version, responde
 	switch {
 	case newVersion.Spec.ISOURL == "" || newVersion.Spec.ISOChecksum == "":
 		return false
-	case slice.ContainsString(responderVersion.Tags, "dev"):
+	case slices.Contains(responderVersion.Tags, "dev"):
 		return true
 	case gversion.Compare(currentVersion, responderVersion.Name, "<") && (responderVersion.MinUpgradableVersion == "" || gversion.Compare(currentVersion, responderVersion.MinUpgradableVersion, ">=")):
 		return true

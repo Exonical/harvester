@@ -9,7 +9,7 @@ import (
 
 	"github.com/rancher/wrangler/v3/pkg/apply"
 	"github.com/rancher/wrangler/v3/pkg/crd"
-	"github.com/rancher/wrangler/v3/pkg/name"
+	"github.com/harvester/harvester/pkg/util/name"
 	"github.com/sirupsen/logrus"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"

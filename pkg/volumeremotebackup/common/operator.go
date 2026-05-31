@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/rancher/wrangler/v3/pkg/condition"
+	"github.com/harvester/harvester/pkg/util/condition"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
 	corev1 "k8s.io/api/core/v1"

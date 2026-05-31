@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rancher/wrangler/v3/pkg/patch"
+	"github.com/harvester/harvester/pkg/util/patch"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubevirtv1 "kubevirt.io/api/core/v1"

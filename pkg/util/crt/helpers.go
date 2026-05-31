@@ -25,7 +25,7 @@ func RSplit(s, sep string) (string, string) {
 	return s[:i], s[i+len(sep):]
 }
 
-// ContainsString checks if a string slice contains a given string, replacing wrangler's slice.ContainsString
+// ContainsString checks if a string slice contains a given string, replacing wrangler's slices.Contains
 func ContainsString(slice []string, s string) bool {
 	for _, item := range slice {
 		if item == s {

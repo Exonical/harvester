@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rancher/wrangler/v3/pkg/condition"
+	"github.com/harvester/harvester/pkg/util/condition"
 	ctlappsv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps/v1"
 	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"

@@ -7,7 +7,7 @@ import (
 
 	longhorntypes "github.com/longhorn/longhorn-manager/types"
 	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
-	"github.com/rancher/wrangler/v3/pkg/slice"
+	"slices"
 	"github.com/sirupsen/logrus"
 	storagev1 "k8s.io/api/storage/v1"
 	"kubevirt.io/kubevirt/pkg/apimachinery/patch"
@@ -53,7 +53,7 @@ func mergeStorageClassParams(vmi *harvesterv1.VirtualMachineImage, sc *storagev1
 	}
 
 	for k, v := range mergeParams {
-		if slice.ContainsString(allowPatchParams, k) {
+		if slices.Contains(allowPatchParams, k) {
 			params[k] = v
 		}
 	}

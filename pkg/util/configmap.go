@@ -1,6 +1,6 @@
 package util
 
-import "github.com/rancher/wrangler/v3/pkg/name"
+import "github.com/harvester/harvester/pkg/util/name"
 
 func GetRestoreVMConfigMapName(upgradeName string) string {
 	return name.SafeConcatName(upgradeName, RestoreVMConfigMap)
