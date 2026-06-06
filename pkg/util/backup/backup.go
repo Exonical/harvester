@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/longhorn/backupstore"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	ctlcorev1 "github.com/harvester/harvester/pkg/util/ctlcore"
 
 	harvesterv1 "github.com/harvester/harvester/pkg/apis/harvesterhci.io/v1beta1"
 	"github.com/harvester/harvester/pkg/settings"

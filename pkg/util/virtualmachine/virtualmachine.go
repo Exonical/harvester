@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
-	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
+	v1 "github.com/harvester/harvester/pkg/util/ctlcore"
+	ctlstoragev1 "github.com/harvester/harvester/pkg/util/ctlstorage"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

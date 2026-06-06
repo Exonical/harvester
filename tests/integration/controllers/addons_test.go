@@ -7,7 +7,7 @@ import (
 	ctlhelmv1 "github.com/k3s-io/helm-controller/pkg/generated/controllers/helm.cattle.io/v1"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
-	ctlbatchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
+	ctlbatchv1 "github.com/harvester/harvester/pkg/util/ctlbatch"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 

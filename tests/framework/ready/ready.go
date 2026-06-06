@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/onsi/ginkgo/v2"
-	"github.com/rancher/wrangler/v3/pkg/generated/controllers/apps"
+	"github.com/harvester/harvester/pkg/util/ctlapps"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/apimachinery/pkg/util/wait"
 	restclient "k8s.io/client-go/rest"
@@ -68,17 +68,17 @@ func (cl ConditionList) Wait(ctx context.Context) error {
 	return g.Wait()
 }
 
-type AppsConditionFunc func(appsFactory *apps.Factory, namespace, name string) (string, wait.ConditionFunc)
+type AppsConditionFunc func(appsFactory *ctlapps.Factory, namespace, name string) (string, wait.ConditionFunc)
 
 type NamespaceCondition struct {
 	namespace     string
 	kubeConfig    *restclient.Config
-	appsFactory   *apps.Factory
+	appsFactory   *ctlapps.Factory
 	conditionList ConditionList
 }
 
 func NewNamespaceCondition(kubeConfig *restclient.Config, namespace string) (*NamespaceCondition, error) {
-	appsFactory, err := apps.NewFactoryFromConfig(kubeConfig)
+	appsFactory, err := ctlapps.NewFactoryFromConfig(kubeConfig)
 	if err != nil {
 		return nil, err
 	}

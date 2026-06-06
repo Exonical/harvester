@@ -7,7 +7,6 @@ import (
 	cniv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	lhv1beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	upgradev1 "github.com/rancher/system-upgrade-controller/pkg/apis/upgrade.cattle.io/v1"
-	wcrd "github.com/rancher/wrangler/v3/pkg/crd"
 	"k8s.io/client-go/rest"
 
 	"github.com/harvester/harvester/pkg/util/crd"
@@ -32,29 +31,29 @@ func createCRDs(ctx context.Context, restConfig *rest.Config) error {
 		BatchWait()
 }
 
-func createNetworkAttachmentDefinitionCRD() wcrd.CRD {
+func createNetworkAttachmentDefinitionCRD() crd.CRD {
 	nad := crd.FromGV(cniv1.SchemeGroupVersion, "NetworkAttachmentDefinition", cniv1.NetworkAttachmentDefinition{})
 	nad.PluralName = "network-attachment-definitions"
 	nad.SingularName = "network-attachment-definition"
 	return nad
 }
 
-func createHelmChartConfigCRD() wcrd.CRD {
+func createHelmChartConfigCRD() crd.CRD {
 	mChart := crd.FromGV(helmv1.SchemeGroupVersion, "HelmChartConfig", helmv1.HelmChartConfig{})
 	mChart.PluralName = "helmchartconfigs"
 	mChart.SingularName = "helmchartconfig"
 	return mChart
 }
 
-func createPlanCRD() wcrd.CRD {
+func createPlanCRD() crd.CRD {
 	plan := crd.FromGV(upgradev1.SchemeGroupVersion, "Plan", upgradev1.Plan{})
 	plan.PluralName = "plans"
 	plan.SingularName = "plan"
 	return plan
 }
 
-func createHelmChartCRD() wcrd.CRD {
-	return wcrd.NamespacedType("HelmChart.helm.cattle.io/v1").
+func createHelmChartCRD() crd.CRD {
+	return crd.NamespacedType("HelmChart.helm.cattle.io/v1").
 		WithSchemaFromStruct(helmv1.HelmChart{}).
 		WithColumn("Job", ".status.jobName").
 		WithColumn("Chart", ".spec.chart").
@@ -65,14 +64,14 @@ func createHelmChartCRD() wcrd.CRD {
 		WithColumn("Bootstrap", ".spec.bootstrap")
 }
 
-func createLonghornNodeCRD() wcrd.CRD {
+func createLonghornNodeCRD() crd.CRD {
 	return crd.FromGV(lhv1beta2.SchemeGroupVersion, "Node", lhv1beta2.Node{})
 }
 
-func createLonghornVolumeCRD() wcrd.CRD {
+func createLonghornVolumeCRD() crd.CRD {
 	return crd.FromGV(lhv1beta2.SchemeGroupVersion, "Volume", lhv1beta2.Volume{})
 }
 
-func createLonghornReplicaCRD() wcrd.CRD {
+func createLonghornReplicaCRD() crd.CRD {
 	return crd.FromGV(lhv1beta2.SchemeGroupVersion, "Replica", lhv1beta2.Replica{})
 }
