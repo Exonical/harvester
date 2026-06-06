@@ -7,7 +7,7 @@ import (
 
 	"sigs.k8s.io/json"
 
-	"github.com/rancher/wrangler/v3/pkg/patch"
+	"github.com/harvester/harvester/pkg/util/patch"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"

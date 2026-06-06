@@ -7,7 +7,7 @@ import (
 	ctlappsv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps"
 	ctrlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core"
 	storagev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage"
-	"github.com/rancher/wrangler/v3/pkg/schemes"
+	"github.com/harvester/harvester/pkg/util/schemes"
 	v1 "k8s.io/api/admissionregistration/v1"
 	"k8s.io/client-go/rest"
 

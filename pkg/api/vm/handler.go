@@ -16,9 +16,9 @@ import (
 	"github.com/rancher/apiserver/pkg/apierror"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
-	wranglername "github.com/rancher/wrangler/v3/pkg/name"
+	wranglername "github.com/harvester/harvester/pkg/util/name"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
-	"github.com/rancher/wrangler/v3/pkg/slice"
+	"slices"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -513,7 +513,7 @@ func removeVolumeClaimTemplatesFromVMAnnotation(vm *kubevirtv1.VirtualMachine, t
 	}
 	var toUpdate []util.VolumeClaimTemplateEntry
 	for _, entry := range entries {
-		if !slice.ContainsString(toRemoveDiskNames, entry.Name) {
+		if !slices.Contains(toRemoveDiskNames, entry.Name) {
 			toUpdate = append(toUpdate, entry)
 		}
 	}
@@ -619,7 +619,7 @@ func (h *vmActionHandler) isMigratableNode(targetNode string, vmi *kubevirtv1.Vi
 		return false, errors.New("no matching migratable nodes found")
 	}
 
-	return slice.ContainsString(nodes, targetNode), nil
+	return slices.Contains(nodes, targetNode), nil
 }
 
 func (h *vmActionHandler) abortMigration(namespace, name string) error {

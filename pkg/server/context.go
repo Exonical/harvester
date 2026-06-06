@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/rancher/wrangler/v3/pkg/schemes"
+	"github.com/harvester/harvester/pkg/util/schemes"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	kubevirtv1 "kubevirt.io/api/core/v1"

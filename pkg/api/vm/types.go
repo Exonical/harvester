@@ -1,6 +1,6 @@
 package vm
 
-import "github.com/rancher/wrangler/v3/pkg/condition"
+import "github.com/harvester/harvester/pkg/util/condition"
 
 var (
 	vmiPaused condition.Cond = "Paused"

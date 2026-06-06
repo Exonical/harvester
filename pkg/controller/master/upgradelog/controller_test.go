@@ -5,7 +5,7 @@ import (
 
 	loggingv1 "github.com/kube-logging/logging-operator/pkg/sdk/logging/api/v1beta1"
 
-	"github.com/rancher/wrangler/v3/pkg/name"
+	"github.com/harvester/harvester/pkg/util/name"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"

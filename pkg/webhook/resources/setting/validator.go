@@ -31,7 +31,6 @@ import (
 	lhtypes "github.com/longhorn/longhorn-manager/types"
 	"github.com/rancher/lasso/pkg/log"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	"github.com/rancher/wrangler/v3/pkg/slice"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 	admissionregv1 "k8s.io/api/admissionregistration/v1"
@@ -966,7 +965,7 @@ func validateSSLProtocols(param *settings.SSLParameter) error {
 			continue
 		}
 
-		if !slice.ContainsString(supportedSSLProtocols, given) {
+		if !slices.Contains(supportedSSLProtocols, given) {
 			return fmt.Errorf("unsupported SSL protocol: %s", given)
 		}
 	}

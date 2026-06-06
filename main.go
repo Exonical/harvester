@@ -7,10 +7,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/rancher/wrangler/v3/pkg/signals"
 	"github.com/urfave/cli"
 
 	"github.com/harvester/harvester/pkg/cmd"
@@ -70,7 +73,8 @@ func main() {
 }
 
 func run(commonOptions *config.CommonOptions, options config.Options) error {
-	ctx := signals.SetupSignalContext()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	kubeConfig, err := server.GetConfig(commonOptions.KubeConfig)
 	if err != nil {

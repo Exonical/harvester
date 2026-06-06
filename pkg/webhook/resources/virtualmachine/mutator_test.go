@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	cniv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-	"github.com/rancher/wrangler/v3/pkg/patch"
+	"github.com/harvester/harvester/pkg/util/patch"
 	"github.com/rancher/wrangler/v3/pkg/webhook"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

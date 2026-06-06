@@ -14,7 +14,7 @@ import (
 	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps/v1"
 	ctlbatchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	"github.com/rancher/wrangler/v3/pkg/slice"
+	"slices"
 	"k8s.io/apimachinery/pkg/api/errors"
 
 	harvesterv1 "github.com/harvester/harvester/pkg/apis/harvesterhci.io/v1beta1"
@@ -91,7 +91,7 @@ func (h *Handler) settingOnChanged(_ string, setting *harvesterv1.Setting) (*har
 	// The setting value hash is stored in the annotation when a setting syncer completes.
 	// So that we only proceed when value is changed.
 	if setting.Value == "" && setting.Annotations[util.AnnotationHash] == "" &&
-		!slice.ContainsString(bootstrapSettings, setting.Name) {
+		!slices.Contains(bootstrapSettings, setting.Name) {
 		return nil, nil
 	}
 
@@ -105,7 +105,7 @@ func (h *Handler) settingOnChanged(_ string, setting *harvesterv1.Setting) (*har
 		return nil, fmt.Errorf("failed to calculate hash for setting %s: %w", setting.Name, err)
 	}
 	currentHash := fmt.Sprintf("%x", hash.Sum(nil))
-	if !slice.ContainsString(skipHashCheckSettings, setting.Name) && currentHash == setting.Annotations[util.AnnotationHash] {
+	if !slices.Contains(skipHashCheckSettings, setting.Name) && currentHash == setting.Annotations[util.AnnotationHash] {
 		return nil, nil
 	}
 

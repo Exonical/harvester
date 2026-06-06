@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rancher/wrangler/v3/pkg/condition"
+	"github.com/harvester/harvester/pkg/util/condition"
 	ctlcore "github.com/rancher/wrangler/v3/pkg/generated/controllers/core"
 	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	"github.com/rancher/wrangler/v3/pkg/kv"
+	"github.com/harvester/harvester/pkg/util/kv"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

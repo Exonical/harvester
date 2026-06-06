@@ -1,7 +1,7 @@
 package v1beta1
 
 import (
-	"github.com/rancher/wrangler/v3/pkg/condition"
+	"github.com/harvester/harvester/pkg/util/condition"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

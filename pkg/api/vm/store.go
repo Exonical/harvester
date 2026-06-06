@@ -8,7 +8,7 @@ import (
 	"github.com/rancher/apiserver/pkg/types"
 	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
-	"github.com/rancher/wrangler/v3/pkg/slice"
+	"slices"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
@@ -42,7 +42,7 @@ func (s *vmStore) Delete(request *types.APIRequest, _ *types.APISchema, id strin
 				continue
 			}
 
-			if slice.ContainsString(removedDisks, vol.Name) {
+			if slices.Contains(removedDisks, vol.Name) {
 				removedPVCs = append(removedPVCs, vol.PersistentVolumeClaim.ClaimName)
 			}
 		}
