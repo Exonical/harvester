@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	jobV1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
+	jobV1 "github.com/harvester/harvester/pkg/util/ctlbatchv1"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -13,7 +13,7 @@ import (
 	harvesterv1 "github.com/harvester/harvester/pkg/apis/harvesterhci.io/v1beta1"
 	ctlclusterv1 "github.com/harvester/harvester/pkg/generated/controllers/cluster.x-k8s.io/v1beta1"
 	ctlharvesterv1 "github.com/harvester/harvester/pkg/generated/controllers/harvesterhci.io/v1beta1"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	"github.com/harvester/harvester/pkg/util/ctlcorev1"
 )
 
 const (

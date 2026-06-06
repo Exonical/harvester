@@ -3,7 +3,7 @@ package migration
 import (
 	"context"
 
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	"github.com/harvester/harvester/pkg/util/ctlcorev1"
 	"github.com/sirupsen/logrus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
