@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	//batchv1type "k8s.io/client-go/kubernetes/typed/batch/v1"
-	"github.com/rancher/wrangler/v3/pkg/generic"
+	"github.com/harvester/harvester/pkg/util/fakeclients/generic"
 
 	batchv1type "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/batch/v1"
 )

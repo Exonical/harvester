@@ -4,7 +4,7 @@ import (
 	"context"
 
 	batchv1type "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/batch/v1"
-	"github.com/rancher/wrangler/v3/pkg/generic"
+	"github.com/harvester/harvester/pkg/util/fakeclients/generic"
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
