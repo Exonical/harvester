@@ -14,7 +14,7 @@ import (
 	"time"
 
 	gversion "github.com/mcuadros/go-version"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	"github.com/harvester/harvester/pkg/util/ctlcorev1"
 	"slices"
 	"github.com/sirupsen/logrus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

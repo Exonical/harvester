@@ -12,7 +12,7 @@ import (
 	"github.com/longhorn/backupstore"
 	lhv1beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	"github.com/harvester/harvester/pkg/util/condition"
-	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
+	"github.com/harvester/harvester/pkg/util/ctlstoragev1"
 	wranglername "github.com/harvester/harvester/pkg/util/name"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

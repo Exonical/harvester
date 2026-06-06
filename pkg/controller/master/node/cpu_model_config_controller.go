@@ -13,7 +13,7 @@ import (
 	kubevirtcorev1 "kubevirt.io/api/core/v1"
 	"sigs.k8s.io/yaml"
 
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	"github.com/harvester/harvester/pkg/util/ctlcorev1"
 
 	"github.com/harvester/harvester/pkg/config"
 	ctlkubevirtv1 "github.com/harvester/harvester/pkg/generated/controllers/kubevirt.io/v1"

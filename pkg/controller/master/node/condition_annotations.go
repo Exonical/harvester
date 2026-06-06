@@ -4,7 +4,7 @@ import (
 	"context"
 	"reflect"
 
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	"github.com/harvester/harvester/pkg/util/ctlcorev1"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/harvester/harvester/pkg/config"
