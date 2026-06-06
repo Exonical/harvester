@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	storagev1type "github.com/harvester/harvester/pkg/generated/clientset/versioned/typed/storage.k8s.io/v1"
-	"github.com/rancher/wrangler/v3/pkg/generic"
+	"github.com/harvester/harvester/pkg/util/fakeclients/generic"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"

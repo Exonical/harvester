@@ -4,7 +4,7 @@ import (
 	"context"
 
 	kubeovnapiv1 "github.com/kubeovn/kube-ovn/pkg/apis/kubeovn/v1"
-	"github.com/rancher/wrangler/v3/pkg/generic"
+	"github.com/harvester/harvester/pkg/util/fakeclients/generic"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 

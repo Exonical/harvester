@@ -3,7 +3,7 @@ package fakeclients
 import (
 	"context"
 
-	"github.com/rancher/wrangler/v3/pkg/generic"
+	"github.com/harvester/harvester/pkg/util/fakeclients/generic"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/rest"
 
