@@ -22,7 +22,7 @@ import (
 	harvesterServer "github.com/harvester/harvester/pkg/server/http"
 	"github.com/harvester/harvester/pkg/server/ui"
 	"github.com/harvester/harvester/pkg/util"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	ctlcorev1 "github.com/harvester/harvester/pkg/util/ctlcache/corev1"
 )
 
 const (

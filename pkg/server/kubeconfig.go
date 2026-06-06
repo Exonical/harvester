@@ -3,14 +3,13 @@ package server
 import (
 	"fmt"
 
-	"github.com/rancher/wrangler/v3/pkg/kubeconfig"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 func GetConfig(kubeConfig string) (clientcmd.ClientConfig, error) {
 	if isManual(kubeConfig) {
-		return kubeconfig.GetNonInteractiveClientConfig(kubeConfig), nil
+		return getNonInteractiveClientConfig(kubeConfig), nil
 	}
 
 	return getEmbedded()
@@ -26,4 +25,16 @@ func isManual(kubeConfig string) bool {
 
 func getEmbedded() (clientcmd.ClientConfig, error) {
 	return nil, fmt.Errorf("embedded only supported on linux")
+}
+
+// getNonInteractiveClientConfig builds a ClientConfig from the given
+// kubeconfig path using the standard client-go loading rules.
+func getNonInteractiveClientConfig(kubeConfig string) clientcmd.ClientConfig {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	loadingRules.DefaultClientConfig = &clientcmd.DefaultClientConfig
+	if kubeConfig != "" {
+		loadingRules.ExplicitPath = kubeConfig
+	}
+	overrides := &clientcmd.ConfigOverrides{ClusterDefaults: clientcmd.ClusterDefaults}
+	return clientcmd.NewInteractiveDeferredLoadingClientConfig(loadingRules, overrides, nil)
 }
