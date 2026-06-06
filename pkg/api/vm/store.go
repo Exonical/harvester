@@ -6,8 +6,8 @@ import (
 
 	"github.com/rancher/apiserver/pkg/apierror"
 	"github.com/rancher/apiserver/pkg/types"
-	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
+	v1 "github.com/harvester/harvester/pkg/util/ctlcache/corev1"
+	"github.com/harvester/harvester/pkg/util/schemas/validation"
 	"slices"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	kubevirtv1 "kubevirt.io/api/core/v1"

@@ -6,7 +6,7 @@ import (
 	"github.com/harvester/go-common/common"
 	harvesterServer "github.com/harvester/harvester/pkg/server/http"
 	longhornTypes "github.com/longhorn/longhorn-manager/types"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	ctlcorev1 "github.com/harvester/harvester/pkg/util/ctlcache/corev1"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
