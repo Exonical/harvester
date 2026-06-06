@@ -3,7 +3,7 @@ package client
 import (
 	"fmt"
 
-	"github.com/rancher/wrangler/v3/pkg/generated/controllers/core"
+	"github.com/harvester/harvester/pkg/util/ctlcore"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,7 +12,7 @@ import (
 
 // CreateNamespace create namespace by kubeConfig
 func CreateNamespace(kubeConfig *restclient.Config, namespace string) error {
-	coreFactory, err := core.NewFactoryFromConfig(kubeConfig)
+	coreFactory, err := ctlcore.NewFactoryFromConfig(kubeConfig)
 	if err != nil {
 		return fmt.Errorf("faield to create core factory from kubernetes config, %v", err)
 	}
@@ -25,7 +25,7 @@ func CreateNamespace(kubeConfig *restclient.Config, namespace string) error {
 	return nil
 }
 
-func GetPodNodeIP(coreFactory *core.Factory, namespace, labelAppValue string) (string, error) {
+func GetPodNodeIP(coreFactory *ctlcore.Factory, namespace, labelAppValue string) (string, error) {
 	podController := coreFactory.Core().V1().Pod()
 	nodeController := coreFactory.Core().V1().Node()
 
@@ -53,7 +53,7 @@ func GetPodNodeIP(coreFactory *core.Factory, namespace, labelAppValue string) (s
 }
 
 func GetNodePortEndPoint(kubeConfig *restclient.Config, namespace, deploymentName, serviceName string) (string, error) {
-	coreFactory, err := core.NewFactoryFromConfig(kubeConfig)
+	coreFactory, err := ctlcore.NewFactoryFromConfig(kubeConfig)
 	if err != nil {
 		return "", fmt.Errorf("faield to create core factory from kubernetes config, %v", err)
 	}

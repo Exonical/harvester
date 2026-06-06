@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	longhorntypes "github.com/longhorn/longhorn-manager/types"
-	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
+	ctlstoragev1 "github.com/harvester/harvester/pkg/util/ctlstorage"
 	"slices"
 	"github.com/sirupsen/logrus"
 	storagev1 "k8s.io/api/storage/v1"

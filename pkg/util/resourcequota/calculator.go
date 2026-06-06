@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"runtime"
 
-	ctlv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	ctlv1 "github.com/harvester/harvester/pkg/util/ctlcore"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"

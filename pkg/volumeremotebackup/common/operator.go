@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/harvester/harvester/pkg/util/condition"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
+	ctlcorev1 "github.com/harvester/harvester/pkg/util/ctlcore"
+	ctlstoragev1 "github.com/harvester/harvester/pkg/util/ctlstorage"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

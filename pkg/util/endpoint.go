@@ -1,7 +1,7 @@
 package util
 
 import (
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	ctlcorev1 "github.com/harvester/harvester/pkg/util/ctlcore"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

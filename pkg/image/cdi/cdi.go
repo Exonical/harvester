@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
+	ctlcorev1 "github.com/harvester/harvester/pkg/util/ctlcore"
+	ctlstoragev1 "github.com/harvester/harvester/pkg/util/ctlstorage"
 	"github.com/sirupsen/logrus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

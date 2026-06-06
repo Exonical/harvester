@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rancher/wrangler/v3/pkg/apply"
-	"github.com/rancher/wrangler/v3/pkg/crd"
+	"github.com/harvester/harvester/pkg/util/apply"
+	wcrd "github.com/rancher/wrangler/v3/pkg/crd"
 	"github.com/harvester/harvester/pkg/util/name"
 	"github.com/sirupsen/logrus"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -21,14 +21,22 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// CRD is a type alias for the wrangler CRD type.
+type CRD = wcrd.CRD
+
+// NamespacedType wraps wcrd.NamespacedType for creating namespaced CRD definitions.
+func NamespacedType(name string) CRD {
+	return wcrd.NamespacedType(name)
+}
+
 // FromGV returns an abstract namespace-scope CRD handler via group version and kind.
-func FromGV(gv schema.GroupVersion, kind string, obj interface{}) crd.CRD {
-	return crd.FromGV(gv, kind).WithSchemaFromStruct(obj)
+func FromGV(gv schema.GroupVersion, kind string, obj interface{}) CRD {
+	return wcrd.FromGV(gv, kind).WithSchemaFromStruct(obj)
 }
 
 // NonNamespacedFromGV returns a cluster-scope CRD abstract handler via group version and kind.
-func NonNamespacedFromGV(gv schema.GroupVersion, kind string, obj interface{}) crd.CRD {
-	var c = crd.FromGV(gv, kind).WithSchemaFromStruct(obj)
+func NonNamespacedFromGV(gv schema.GroupVersion, kind string, obj interface{}) CRD {
+	var c = wcrd.FromGV(gv, kind).WithSchemaFromStruct(obj)
 	c.NonNamespace = true
 	return c
 }
@@ -66,7 +74,7 @@ func (f *Factory) BatchWait() error {
 }
 
 // CreateCRDsIfNotExisted concurrently creates the target CRDs which are not existed.
-func (f *Factory) BatchCreateCRDsIfNotExisted(crds ...crd.CRD) *Factory {
+func (f *Factory) BatchCreateCRDsIfNotExisted(crds ...CRD) *Factory {
 	f.wg.Add(1)
 	go func() {
 		defer f.wg.Done()
@@ -82,7 +90,7 @@ func getCRDName(pluralName, group string) string {
 	return fmt.Sprintf("%s.%s", pluralName, group)
 }
 
-func (f *Factory) CreateCRDs(ctx context.Context, updateIfExisted bool, crds ...crd.CRD) (map[schema.GroupVersionKind]*apiext.CustomResourceDefinition, error) {
+func (f *Factory) CreateCRDs(ctx context.Context, updateIfExisted bool, crds ...CRD) (map[schema.GroupVersionKind]*apiext.CustomResourceDefinition, error) {
 	if len(crds) == 0 {
 		return nil, nil
 	}
@@ -139,7 +147,7 @@ func (f *Factory) CreateCRDs(ctx context.Context, updateIfExisted bool, crds ...
 	return crdStatus, nil
 }
 
-func (f *Factory) createCRD(ctx context.Context, crdDef crd.CRD, _ map[string]*apiext.CustomResourceDefinition) (*apiext.CustomResourceDefinition, error) {
+func (f *Factory) createCRD(ctx context.Context, crdDef CRD, _ map[string]*apiext.CustomResourceDefinition) (*apiext.CustomResourceDefinition, error) {
 	crd, err := crdDef.ToCustomResourceDefinition()
 	if err != nil {
 		return nil, err

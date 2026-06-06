@@ -7,7 +7,7 @@ import (
 	lhv1beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	longhorntypes "github.com/longhorn/longhorn-manager/types"
 	lhutil "github.com/longhorn/longhorn-manager/util"
-	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
+	ctlstoragev1 "github.com/harvester/harvester/pkg/util/ctlstorage"
 	"github.com/sirupsen/logrus"
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
