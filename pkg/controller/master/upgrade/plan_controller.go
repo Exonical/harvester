@@ -9,7 +9,7 @@ import (
 	upgradectlv1 "github.com/harvester/harvester/pkg/generated/controllers/upgrade.cattle.io/v1"
 	"github.com/rancher/system-upgrade-controller/pkg/apis/upgrade.cattle.io"
 	upgradev1 "github.com/rancher/system-upgrade-controller/pkg/apis/upgrade.cattle.io/v1"
-	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	v1 "github.com/harvester/harvester/pkg/util/ctlcorev1"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

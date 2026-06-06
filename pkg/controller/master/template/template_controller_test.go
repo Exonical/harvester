@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rancher/wrangler/v3/pkg/generic"
+	"github.com/harvester/harvester/pkg/util/generic"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

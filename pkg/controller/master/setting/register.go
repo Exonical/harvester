@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rancher/wrangler/v3/pkg/relatedresource"
+	"github.com/harvester/harvester/pkg/util/relatedresource"
 
 	"github.com/harvester/harvester/pkg/config"
 	harvSettings "github.com/harvester/harvester/pkg/settings"

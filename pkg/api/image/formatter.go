@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rancher/apiserver/pkg/apierror"
 	"github.com/rancher/apiserver/pkg/types"
-	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
+	"github.com/harvester/harvester/pkg/util/schemas/validation"
 	"github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 

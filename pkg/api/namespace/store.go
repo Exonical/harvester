@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/rancher/apiserver/pkg/types"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	ctlcorev1 "github.com/harvester/harvester/pkg/util/ctlcache/corev1"
 
 	supportBundleUtil "github.com/harvester/harvester/pkg/util/supportbundle"
 )

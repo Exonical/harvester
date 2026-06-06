@@ -3,7 +3,7 @@ package vmimagedownloader
 import (
 	"context"
 
-	"github.com/rancher/wrangler/v3/pkg/relatedresource"
+	"github.com/harvester/harvester/pkg/util/relatedresource"
 
 	"github.com/harvester/harvester/pkg/config"
 )

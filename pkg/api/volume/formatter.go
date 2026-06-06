@@ -2,8 +2,8 @@ package volume
 
 import (
 	"github.com/rancher/apiserver/pkg/types"
-	"github.com/rancher/wrangler/v3/pkg/data/convert"
-	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
+	"github.com/harvester/harvester/pkg/util/convert"
+	ctlstoragev1 "github.com/harvester/harvester/pkg/util/ctlcache/storagev1"
 	corev1 "k8s.io/api/core/v1"
 
 	ctlkubevirtv1 "github.com/harvester/harvester/pkg/generated/controllers/kubevirt.io/v1"

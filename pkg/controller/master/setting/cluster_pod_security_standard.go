@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/rancher/wrangler/v3/pkg/relatedresource"
+	"github.com/harvester/harvester/pkg/util/relatedresource"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"

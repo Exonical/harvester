@@ -10,10 +10,10 @@ import (
 
 	ctlnodev1 "github.com/harvester/node-manager/pkg/generated/controllers/node.harvesterhci.io/v1beta1"
 	ctlhelmv1 "github.com/k3s-io/helm-controller/pkg/generated/controllers/helm.cattle.io/v1"
-	"github.com/rancher/wrangler/v3/pkg/apply"
-	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/apps/v1"
-	ctlbatchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
+	"github.com/harvester/harvester/pkg/util/apply"
+	v1 "github.com/harvester/harvester/pkg/util/ctlappsv1"
+	"github.com/harvester/harvester/pkg/util/ctlbatchv1"
+	"github.com/harvester/harvester/pkg/util/ctlcorev1"
 	"slices"
 	"k8s.io/apimachinery/pkg/api/errors"
 

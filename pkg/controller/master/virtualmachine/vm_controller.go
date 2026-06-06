@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	v1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	ctlstoragev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/storage/v1"
+	v1 "github.com/harvester/harvester/pkg/util/ctlcorev1"
+	"github.com/harvester/harvester/pkg/util/ctlstoragev1"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"

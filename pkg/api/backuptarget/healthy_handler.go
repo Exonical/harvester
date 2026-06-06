@@ -10,8 +10,8 @@ import (
 	_ "github.com/longhorn/backupstore/nfs" //nolint
 	_ "github.com/longhorn/backupstore/s3"  //nolint
 	"github.com/rancher/apiserver/pkg/apierror"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
+	ctlcorev1 "github.com/harvester/harvester/pkg/util/ctlcache/corev1"
+	"github.com/harvester/harvester/pkg/util/schemas/validation"
 
 	"github.com/harvester/harvester/pkg/config"
 	"github.com/harvester/harvester/pkg/generated/controllers/harvesterhci.io/v1beta1"

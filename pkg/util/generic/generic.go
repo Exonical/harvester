@@ -1,10 +1,13 @@
 package generic
 
 import (
-	wgeneric "github.com/rancher/wrangler/v3/pkg/generic"
+	wranglergeneric "github.com/rancher/wrangler/v3/pkg/generic"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// FactoryOptions is a type alias for wrangler FactoryOptions.
-// This package centralizes the wrangler generic dependency so application code
-// does not import wrangler directly.
-type FactoryOptions = wgeneric.FactoryOptions
+type RuntimeMetaObject = wranglergeneric.RuntimeMetaObject
+type ClientInterface[T RuntimeMetaObject, TList runtime.Object] = wranglergeneric.ClientInterface[T, TList]
+type ControllerInterface[T RuntimeMetaObject, TList runtime.Object] = wranglergeneric.ControllerInterface[T, TList]
+type CacheInterface[T RuntimeMetaObject] = wranglergeneric.CacheInterface[T]
+type NonNamespacedControllerInterface[T RuntimeMetaObject, TList runtime.Object] = wranglergeneric.NonNamespacedControllerInterface[T, TList]
+type NonNamespacedCacheInterface[T RuntimeMetaObject] = wranglergeneric.NonNamespacedCacheInterface[T]

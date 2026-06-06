@@ -4,9 +4,9 @@ import (
 	"context"
 
 	ctlhelmv1 "github.com/k3s-io/helm-controller/pkg/generated/controllers/helm.cattle.io/v1"
-	ctlbatchv1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/batch/v1"
-	ctlcorev1 "github.com/rancher/wrangler/v3/pkg/generated/controllers/core/v1"
-	"github.com/rancher/wrangler/v3/pkg/relatedresource"
+	"github.com/harvester/harvester/pkg/util/ctlbatchv1"
+	"github.com/harvester/harvester/pkg/util/ctlcorev1"
+	"github.com/harvester/harvester/pkg/util/relatedresource"
 
 	harvesterv1 "github.com/harvester/harvester/pkg/apis/harvesterhci.io/v1beta1"
 	"github.com/harvester/harvester/pkg/config"
